@@ -209,6 +209,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@booking/backend@workspace:backend":
+  version: 0.0.0-use.local
+  resolution: "@booking/backend@workspace:backend"
+  dependencies:
+    "@hono/node-server": "npm:^1.13.0"
+    "@types/node": "npm:^25.3.3"
+    hono: "npm:^4.7.0"
+    tsx: "npm:^4.19.0"
+    typescript: "npm:^5.9.3"
+  languageName: unknown
+  linkType: soft
+
+"@booking/frontend@workspace:frontend":
+  version: 0.0.0-use.local
+  resolution: "@booking/frontend@workspace:frontend"
+  dependencies:
+    "@heroicons/react": "npm:^2.2.0"
+    "@tailwindcss/vite": "npm:^4.2.1"
+    "@types/node": "npm:^25.3.3"
+    "@types/react": "npm:^19.2.14"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react": "npm:^5.1.4"
+    react: "npm:^19.2.4"
+    react-dom: "npm:^19.2.4"
+    react-router-dom: "npm:^7.13.1"
+    tailwindcss: "npm:^4.2.1"
+    typescript: "npm:^5.9.3"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@emnapi/core@npm:^1.7.1, @emnapi/core@npm:^1.8.1":
   version: 1.8.1
   resolution: "@emnapi/core@npm:1.8.1"
@@ -434,6 +465,15 @@ __metadata:
   peerDependencies:
     react: ">= 16 || ^19.0.0-rc"
   checksum: 10c0/f8d3cf689b56716339c91df3542f3948115042d1e70e6bc940a3f3e347c0bc78b56aa563917fbd7ce097fe2f38ebb21bffb0db39be914cbc545a754bddae9ab4
+  languageName: node
+  linkType: hard
+
+"@hono/node-server@npm:^1.13.0":
+  version: 1.19.11
+  resolution: "@hono/node-server@npm:1.19.11"
+  peerDependencies:
+    hono: ^4
+  checksum: 10c0/34b1c29c249c5cd95469980b5c359370f3cbab49b3603f324a4afbf895d68b8d5485c71f1887769eabeb3499276c49e7102084234b4feb3853edb748aaa85f50
   languageName: node
   linkType: hard
 
@@ -999,26 +1039,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"booking-platform@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "booking-platform@workspace:."
-  dependencies:
-    "@heroicons/react": "npm:^2.2.0"
-    "@tailwindcss/vite": "npm:^4.2.1"
-    "@types/node": "npm:^25.3.3"
-    "@types/react": "npm:^19.2.14"
-    "@types/react-dom": "npm:^19.2.3"
-    "@vitejs/plugin-react": "npm:^5.1.4"
-    prettier: "npm:^3.8.1"
-    react: "npm:^19.2.4"
-    react-dom: "npm:^19.2.4"
-    react-router-dom: "npm:^7.13.1"
-    tailwindcss: "npm:^4.2.1"
-    typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
-  languageName: unknown
-  linkType: soft
-
 "brace-expansion@npm:^5.0.2":
   version: 5.0.4
   resolution: "brace-expansion@npm:5.0.4"
@@ -1140,7 +1160,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.27.0":
+"esbuild@npm:^0.27.0, esbuild@npm:~0.27.0":
   version: 0.27.3
   resolution: "esbuild@npm:0.27.3"
   dependencies:
@@ -1290,6 +1310,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"get-tsconfig@npm:^4.7.5":
+  version: 4.13.6
+  resolution: "get-tsconfig@npm:4.13.6"
+  dependencies:
+    resolve-pkg-maps: "npm:^1.0.0"
+  checksum: 10c0/bab6937302f542f97217cbe7cbbdfa7e85a56a377bc7a73e69224c1f0b7c9ae8365918e55752ae8648265903f506c1705f63c0de1d4bab1ec2830fef3e539a1a
+  languageName: node
+  linkType: hard
+
 "glob@npm:^13.0.0":
   version: 13.0.6
   resolution: "glob@npm:13.0.6"
@@ -1305,6 +1334,13 @@ __metadata:
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
+  languageName: node
+  linkType: hard
+
+"hono@npm:^4.7.0":
+  version: 4.12.5
+  resolution: "hono@npm:4.12.5"
+  checksum: 10c0/a8cf0c988e84b370978b57d941fc543b93994b7b01c847611ec73be8e8c9fda5baeac8be08a44eaefdf215381fea2620ccb742ff5c4eaeecb35b92f6a75832c6
   languageName: node
   linkType: hard
 
@@ -1740,6 +1776,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"platform-booking@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "platform-booking@workspace:."
+  languageName: unknown
+  linkType: soft
+
 "postcss@npm:^8.5.6":
   version: 8.5.8
   resolution: "postcss@npm:8.5.8"
@@ -1748,15 +1790,6 @@ __metadata:
     picocolors: "npm:^1.1.1"
     source-map-js: "npm:^1.2.1"
   checksum: 10c0/dd918f7127ee7c60a0295bae2e72b3787892296e1d1c3c564d7a2a00c68d8df83cadc3178491259daa19ccc54804fb71ed8c937c6787e08d8bd4bedf8d17044c
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^3.8.1":
-  version: 3.8.1
-  resolution: "prettier@npm:3.8.1"
-  bin:
-    prettier: bin/prettier.cjs
-  checksum: 10c0/33169b594009e48f570471271be7eac7cdcf88a209eed39ac3b8d6d78984039bfa9132f82b7e6ba3b06711f3bfe0222a62a1bfb87c43f50c25a83df1b78a2c42
   languageName: node
   linkType: hard
 
@@ -1817,6 +1850,13 @@ __metadata:
   version: 19.2.4
   resolution: "react@npm:19.2.4"
   checksum: 10c0/cd2c9ff67a720799cc3b38a516009986f7fc4cb8d3e15716c6211cf098d1357ee3e348ab05ad0600042bbb0fd888530ba92e329198c92eafa0994f5213396596
+  languageName: node
+  linkType: hard
+
+"resolve-pkg-maps@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "resolve-pkg-maps@npm:1.0.0"
+  checksum: 10c0/fb8f7bbe2ca281a73b7ef423a1cbc786fb244bd7a95cbe5c3fba25b27d327150beca8ba02f622baea65919a57e061eb5005204daa5f93ed590d9b77463a567ab
   languageName: node
   linkType: hard
 
@@ -2041,6 +2081,22 @@ __metadata:
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
+  languageName: node
+  linkType: hard
+
+"tsx@npm:^4.19.0":
+  version: 4.21.0
+  resolution: "tsx@npm:4.21.0"
+  dependencies:
+    esbuild: "npm:~0.27.0"
+    fsevents: "npm:~2.3.3"
+    get-tsconfig: "npm:^4.7.5"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    tsx: dist/cli.mjs
+  checksum: 10c0/f5072923cd8459a1f9a26df87823a2ab5754641739d69df2a20b415f61814322b751fa6be85db7c6ec73cf68ba8fac2fd1cfc76bdb0aa86ded984d84d5d2126b
   languageName: node
   linkType: hard
 
