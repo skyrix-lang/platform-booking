@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -10,10 +10,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm",
-  secondary:
+    "bg-primary-600 text-white hover:bg-primary-500 active:bg-primary-700 shadow-sm",
+  secondary: [
     "bg-white text-surface-700 border border-surface-300 hover:bg-surface-50 active:bg-surface-100 shadow-sm",
-  ghost: "text-surface-600 hover:bg-surface-100 active:bg-surface-200",
+    "dark:bg-surface-700 dark:text-surface-200 dark:border-surface-600 dark:hover:bg-surface-600 dark:active:bg-surface-700",
+  ].join(" "),
+  ghost: [
+    "text-surface-600 hover:bg-surface-100 hover:text-surface-900 active:bg-surface-200",
+    "dark:text-surface-300 dark:hover:bg-surface-700 dark:hover:text-surface-100 dark:active:bg-surface-600",
+  ].join(" "),
+  danger:
+    "bg-red-100 text-red-700 hover:bg-red-200 active:bg-red-300 dark:bg-red-600/20 dark:text-red-400 dark:hover:bg-red-600/30 dark:active:bg-red-600/40",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -31,7 +38,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-surface-900 disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
       {...props}
     >
       {children}

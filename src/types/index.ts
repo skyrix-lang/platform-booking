@@ -1,14 +1,15 @@
-export interface Booking {
+export interface Platform {
   id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  duration: number;
-  status: BookingStatus;
+  name: string;
 }
 
-export type BookingStatus = "pending" | "confirmed" | "cancelled";
+export interface PlatformBooking {
+  platformId: string;
+  trigram: string;
+  startDate: string;
+  endDate: string;
+  bookedAt: string;
+}
 
 export interface NavLink {
   label: string;

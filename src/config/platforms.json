@@ -1,0 +1,12 @@
+{
+  "platforms": [
+    { "id": "dev01", "name": "DEV01" },
+    { "id": "dev02", "name": "DEV02" },
+    { "id": "dev03", "name": "DEV03" },
+    { "id": "dev04", "name": "DEV04" },
+    { "id": "dev05", "name": "DEV05" },
+    { "id": "dev06", "name": "DEV06" },
+    { "id": "dev07", "name": "DEV07" },
+    { "id": "dev08", "name": "DEV08" }
+  ]
+}
