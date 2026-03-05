@@ -1,4 +1,31 @@
 {
-  "name": "platform-booking",
-  "packageManager": "yarn@4.12.0"
+  "name": "booking-platform",
+  "version": "1.0.0",
+  "description": "Book a platform",
+  "private": true,
+  "packageManager": "yarn@4.13.0",
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/node": "^25.3.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1"
+  },
+  "scripts": {
+    "build": "vite build",
+    "check": "echo '[check] Running compilation...'; tsc --noEmit && echo '[check] Compilation succeeded without errors.' && exit 0 || echo '[check] Compilation failed, please check.' && exit 1",
+    "clean": "rm -rf dist",
+    "docker:build": "docker build --no-cache -t $npm_package_name:$npm_package_version -f docker/Dockerfile .",
+    "start": "vite"
+  }
 }
