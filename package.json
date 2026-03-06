@@ -3,12 +3,18 @@
   "private": true,
   "packageManager": "yarn@4.13.0",
   "workspaces": [
-    "frontend",
-    "backend"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev": "yarn workspaces foreach -Api run dev",
     "build": "yarn workspaces foreach -Api run build",
-    "check": "yarn workspaces foreach -Api run check"
+    "check": "yarn workspaces foreach -Api run check",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker-compose -f docker-compose.dev.yml down",
+    "docker:prod": "docker-compose up --build",
+    "docker:prod:down": "docker-compose down",
+    "docker:build": "docker build -f docker/production.Dockerfile -t platform-booking:latest .",
+    "docker:run": "docker run -p 80:80 -v booking-data:/app/data platform-booking:latest"
   }
 }

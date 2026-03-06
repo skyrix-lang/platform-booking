@@ -1,0 +1,31 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.dev.Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    volumes:
+      - ./apps/frontend/src:/app/apps/frontend/src
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.dev.Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - HOST=0.0.0.0
+      - CORS_ORIGINS=http://localhost:5173
+      - DB_PATH=/app/data/booking.db
+    volumes:
+      - ./apps/backend/src:/app/apps/backend/src
+      - backend-data:/app/data
+
+volumes:
+  backend-data:
