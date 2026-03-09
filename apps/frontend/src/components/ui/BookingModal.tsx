@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import type { FormEvent } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { toISODate, parseISODate, isValidTrigram } from "@booking/shared";
 import { Button } from "@/components/ui/Button.tsx";
 import { Calendar } from "@/components/ui/Calendar.tsx";
 import type { Platform } from "@/types/index.ts";
+import { isValidTrigram, parseISODate, toISODate } from "@booking/shared";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { motion } from "motion/react";
+import type { FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface BookingModalProps {
   platform: Platform;
@@ -62,13 +63,24 @@ export function BookingModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-surface-950/50 dark:bg-surface-950/80 backdrop-blur-sm"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+      className="fixed inset-0 z-50 flex items-center justify-center"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-sm shadow-elevated w-full max-w-md mx-4">
+      <div className="absolute inset-0 bg-surface-950/50 dark:bg-surface-950/80 backdrop-blur-sm" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
+        className="relative bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-sm shadow-elevated w-full max-w-md mx-4"
+      >
         <div className="flex items-center justify-between px-4 py-3 border-b border-surface-200 dark:border-surface-800">
           <div>
             <h2 className="text-sm font-semibold text-surface-900 dark:text-surface-100">
@@ -92,7 +104,7 @@ export function BookingModal({
               htmlFor="trigram"
               className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1.5"
             >
-              Your trigram
+              Your trigram name
             </label>
             <input
               ref={inputRef}
@@ -146,7 +158,7 @@ export function BookingModal({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

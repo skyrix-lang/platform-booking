@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { AnimatePresence, LayoutGroup } from "motion/react";
 import { getDaysUntil, type Booking } from "@booking/shared";
 import platformsConfig from "@booking/shared/platforms";
 import { PlatformCard } from "@/components/ui/PlatformCard.tsx";
@@ -157,30 +158,36 @@ export function Dashboard() {
           No platforms found
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {filteredPlatforms.map((platform) => {
-            const booking = bookingsByPlatform.get(platform.id);
-            return (
-              <PlatformCard
-                key={platform.id}
-                platform={platform}
-                booking={booking}
-                daysLeft={booking ? getDaysUntil(booking.endDate) : null}
-                onBook={setBookingTarget}
-                onRelease={handleRelease}
-              />
-            );
-          })}
-        </div>
+        <LayoutGroup>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <AnimatePresence mode="popLayout">
+              {filteredPlatforms.map((platform) => {
+                const booking = bookingsByPlatform.get(platform.id);
+                return (
+                  <PlatformCard
+                    key={platform.id}
+                    platform={platform}
+                    booking={booking}
+                    daysLeft={booking ? getDaysUntil(booking.endDate) : null}
+                    onBook={setBookingTarget}
+                    onRelease={handleRelease}
+                  />
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </LayoutGroup>
       )}
 
-      {bookingTarget && (
-        <BookingModal
-          platform={bookingTarget}
-          onConfirm={handleBook}
-          onClose={() => setBookingTarget(null)}
-        />
-      )}
+      <AnimatePresence>
+        {bookingTarget && (
+          <BookingModal
+            platform={bookingTarget}
+            onConfirm={handleBook}
+            onClose={() => setBookingTarget(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

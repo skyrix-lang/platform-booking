@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/Button.tsx";
 import type { Platform, PlatformBooking } from "@/types/index.ts";
 import {
@@ -32,17 +33,22 @@ export function PlatformCard({
   const isBooked = !!booking;
 
   return (
-    <div
-      className={`relative bg-white dark:bg-surface-900 border rounded-sm shadow-card flex flex-col transition-all ${
+    <motion.div
+      layout="position"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2, layout: { duration: 0.25 } }}
+      className={`relative bg-white dark:bg-surface-900 border rounded-sm shadow-card flex flex-col transition-colors ${
         isBooked
           ? "border-warning-500/50 dark:border-warning-500/40"
           : "border-success-500/50 dark:border-success-500/40"
       }`}
     >
-      <div
-        className={`absolute inset-x-0 top-0 h-0.5 ${
-          isBooked ? "bg-warning-500" : "bg-success-500"
-        }`}
+      <motion.div
+        className="absolute inset-x-0 top-0 h-0.5"
+        animate={{ backgroundColor: isBooked ? "var(--color-warning-500)" : "var(--color-success-500)" }}
+        transition={{ duration: 0.4 }}
       />
 
       <div className="p-4 flex flex-col gap-3">
@@ -64,32 +70,48 @@ export function PlatformCard({
           </span>
         </div>
 
-        {isBooked && booking ? (
-          <div className="space-y-1.5 text-sm text-surface-600 dark:text-surface-400">
-            <div className="flex items-center gap-2">
-              <UserCircleIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
-              <span className="font-mono font-semibold text-surface-800 dark:text-surface-200">
-                {booking.trigram}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarDaysIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
-              <span className="text-surface-600 dark:text-surface-400">
-                {formatDate(booking.startDate)} &rarr;{" "}
-                {formatDate(booking.endDate)}
-                {daysLeft !== null && (
-                  <span className="text-surface-400 dark:text-surface-500 ml-1">
-                    ({daysLeft === 0 ? "last day" : `${daysLeft}d`})
-                  </span>
-                )}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-surface-500 dark:text-surface-500">
-            Platform available
-          </p>
-        )}
+        <AnimatePresence mode="wait">
+          {isBooked && booking ? (
+            <motion.div
+              key="booked"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-1.5 text-sm text-surface-600 dark:text-surface-400"
+            >
+              <div className="flex items-center gap-2">
+                <UserCircleIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
+                <span className="font-mono font-semibold text-surface-800 dark:text-surface-200">
+                  {booking.trigram}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CalendarDaysIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
+                <span className="text-surface-600 dark:text-surface-400">
+                  {formatDate(booking.startDate)} &rarr;{" "}
+                  {formatDate(booking.endDate)}
+                  {daysLeft !== null && (
+                    <span className="text-surface-400 dark:text-surface-500 ml-1">
+                      ({daysLeft === 0 ? "last day" : `${daysLeft}d`})
+                    </span>
+                  )}
+                </span>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.p
+              key="available"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              className="text-sm text-surface-500 dark:text-surface-500"
+            >
+              Platform available
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="mt-auto border-t border-surface-100 dark:border-surface-800 p-3">
@@ -108,6 +130,6 @@ export function PlatformCard({
           </Button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
