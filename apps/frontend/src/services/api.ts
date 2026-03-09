@@ -1,6 +1,6 @@
 import type { Booking } from "@booking/shared";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 export async function fetchBookings(): Promise<Booking[]> {
   const res = await fetch(`${API_URL}/api/bookings`);
