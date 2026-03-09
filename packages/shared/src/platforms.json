@@ -1,12 +1,17 @@
 {
   "platforms": [
-    { "id": "dev01", "name": "DEV01" },
-    { "id": "dev02", "name": "DEV02" },
-    { "id": "dev03", "name": "DEV03" },
-    { "id": "dev04", "name": "DEV04" },
-    { "id": "dev05", "name": "DEV05" },
-    { "id": "dev06", "name": "DEV06" },
-    { "id": "dev07", "name": "DEV07" },
-    { "id": "dev08", "name": "DEV08" }
+    { "id": "ic01", "description": "Redeployed nightly" },
+    { "id": "ic03", "description": "Redeployed nightly" },
+    { "id": "ic04" },
+    { "id": "ic05" },
+    { "id": "dev01" },
+    { "id": "dev02" },
+    { "id": "dev03" },
+    { "id": "ivt" },
+    { "id": "freetest" },
+    { "id": "it01", "kubernetes": true, "description": "Redeployed nightly" },
+    { "id": "it03", "kubernetes": true, "description": "Redeployed nightly" },
+    { "id": "d01", "kubernetes": true },
+    { "id": "d02", "kubernetes": true }
   ]
 }

@@ -4,9 +4,9 @@ services:
       context: .
       dockerfile: docker/frontend.dev.Dockerfile
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT}:5173"
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=${VITE_API_URL}
     volumes:
       - ./apps/frontend/src:/app/apps/frontend/src
     depends_on:
@@ -17,12 +17,12 @@ services:
       context: .
       dockerfile: docker/backend.dev.Dockerfile
     ports:
-      - "3001:3001"
+      - "${BACKEND_PORT}:3001"
     environment:
       - PORT=3001
-      - HOST=0.0.0.0
-      - CORS_ORIGINS=http://localhost:5173
-      - DB_PATH=/app/data/booking.db
+      - HOST=${HOST}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - DB_PATH=${DB_PATH}
     volumes:
       - ./apps/backend/src:/app/apps/backend/src
       - backend-data:/app/data

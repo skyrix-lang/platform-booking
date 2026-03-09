@@ -4,7 +4,8 @@
 
 export interface Platform {
   id: string;
-  name: string;
+  description?: string;
+  kubernetes?: boolean;
 }
 
 export interface Booking {

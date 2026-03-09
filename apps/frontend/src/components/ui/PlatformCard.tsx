@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button.tsx";
 import type { Platform, PlatformBooking } from "@/types/index.ts";
 import {
   CalendarDaysIcon,
+  CubeIcon,
   ServerStackIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
@@ -54,9 +55,13 @@ export function PlatformCard({
       <div className="p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <ServerStackIcon className="h-4 w-4 text-surface-400 shrink-0" />
+            {platform.kubernetes ? (
+              <CubeIcon className="h-4 w-4 text-blue-500 dark:text-blue-400 shrink-0" />
+            ) : (
+              <ServerStackIcon className="h-4 w-4 text-surface-400 shrink-0" />
+            )}
             <h3 className="font-semibold text-surface-900 dark:text-surface-100 truncate">
-              {platform.name}
+              {platform.id.toUpperCase()}
             </h3>
           </div>
           <span
@@ -70,8 +75,14 @@ export function PlatformCard({
           </span>
         </div>
 
-        <AnimatePresence mode="wait">
-          {isBooked && booking ? (
+        {platform.description && (
+          <p className="text-xs text-surface-500 dark:text-surface-400">
+            {platform.description}
+          </p>
+        )}
+
+        {isBooked && booking && (
+          <AnimatePresence mode="wait">
             <motion.div
               key="booked"
               initial={{ opacity: 0, y: 6 }}
@@ -99,19 +110,8 @@ export function PlatformCard({
                 </span>
               </div>
             </motion.div>
-          ) : (
-            <motion.p
-              key="available"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.2 }}
-              className="text-sm text-surface-500 dark:text-surface-500"
-            >
-              Platform available
-            </motion.p>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        )}
       </div>
 
       <div className="mt-auto border-t border-surface-100 dark:border-surface-800 p-3">

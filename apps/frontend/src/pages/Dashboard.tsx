@@ -10,6 +10,7 @@ import { fetchBookings, createBooking, deleteBooking } from "@/services/api.ts";
 import type { Platform } from "@/types/index.ts";
 
 type FilterMode = "all" | "available" | "booked";
+type TypeFilter = "all" | "swarm" | "k8s";
 
 export function Dashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -18,6 +19,7 @@ export function Dashboard() {
   const [bookingTarget, setBookingTarget] = useState<Platform | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const debouncedSearch = useDebounce(search, 200);
 
   const loadBookings = useCallback(async () => {
@@ -44,24 +46,39 @@ export function Dashboard() {
     return map;
   }, [bookings]);
 
-  const platforms = platformsConfig.platforms as Platform[];
+  const platforms = useMemo(
+    () => [...(platformsConfig.platforms as Platform[])].sort((a, b) => a.id.localeCompare(b.id)),
+    [],
+  );
 
   const filteredPlatforms = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
     return platforms.filter((p) => {
       const matchesSearch =
         !q ||
-        p.name.toLowerCase().includes(q) ||
         p.id.toLowerCase().includes(q) ||
         bookingsByPlatform.get(p.id)?.trigram.toLowerCase().includes(q);
 
       if (!matchesSearch) return false;
 
+      if (typeFilter === "k8s" && !p.kubernetes) return false;
+      if (typeFilter === "swarm" && p.kubernetes) return false;
+
       if (filter === "available") return !bookingsByPlatform.has(p.id);
       if (filter === "booked") return bookingsByPlatform.has(p.id);
       return true;
     });
-  }, [platforms, debouncedSearch, filter, bookingsByPlatform]);
+  }, [platforms, debouncedSearch, filter, typeFilter, bookingsByPlatform]);
+
+  const swarmPlatforms = useMemo(
+    () => filteredPlatforms.filter((p) => !p.kubernetes),
+    [filteredPlatforms],
+  );
+
+  const k8sPlatforms = useMemo(
+    () => filteredPlatforms.filter((p) => p.kubernetes),
+    [filteredPlatforms],
+  );
 
   const availableCount = platforms.filter(
     (p) => !bookingsByPlatform.has(p.id),
@@ -137,6 +154,21 @@ export function Dashboard() {
           />
         </div>
         <div className="flex items-center gap-px bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-sm p-0.5">
+          {(["all", "swarm", "k8s"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setTypeFilter(mode)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-sm cursor-pointer transition-colors ${
+                typeFilter === mode
+                  ? "bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 shadow-sm"
+                  : "text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300"
+              }`}
+            >
+              {mode === "k8s" ? "K8S" : mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-px bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-sm p-0.5">
           {(["all", "available", "booked"] as const).map((mode) => (
             <button
               key={mode}
@@ -159,22 +191,56 @@ export function Dashboard() {
         </div>
       ) : (
         <LayoutGroup>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            <AnimatePresence mode="popLayout">
-              {filteredPlatforms.map((platform) => {
-                const booking = bookingsByPlatform.get(platform.id);
-                return (
-                  <PlatformCard
-                    key={platform.id}
-                    platform={platform}
-                    booking={booking}
-                    daysLeft={booking ? getDaysUntil(booking.endDate) : null}
-                    onBook={setBookingTarget}
-                    onRelease={handleRelease}
-                  />
-                );
-              })}
-            </AnimatePresence>
+          <div className="space-y-8">
+            {swarmPlatforms.length > 0 && (
+              <section>
+                <h2 className="text-sm font-semibold text-surface-700 dark:text-surface-300 mb-3">
+                  Swarm Platforms
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <AnimatePresence mode="popLayout">
+                    {swarmPlatforms.map((platform) => {
+                      const booking = bookingsByPlatform.get(platform.id);
+                      return (
+                        <PlatformCard
+                          key={platform.id}
+                          platform={platform}
+                          booking={booking}
+                          daysLeft={booking ? getDaysUntil(booking.endDate) : null}
+                          onBook={setBookingTarget}
+                          onRelease={handleRelease}
+                        />
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              </section>
+            )}
+
+            {k8sPlatforms.length > 0 && (
+              <section>
+                <h2 className="text-sm font-semibold text-surface-700 dark:text-surface-300 mb-3">
+                  Kubernetes Platforms
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <AnimatePresence mode="popLayout">
+                    {k8sPlatforms.map((platform) => {
+                      const booking = bookingsByPlatform.get(platform.id);
+                      return (
+                        <PlatformCard
+                          key={platform.id}
+                          platform={platform}
+                          booking={booking}
+                          daysLeft={booking ? getDaysUntil(booking.endDate) : null}
+                          onBook={setBookingTarget}
+                          onRelease={handleRelease}
+                        />
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              </section>
+            )}
           </div>
         </LayoutGroup>
       )}

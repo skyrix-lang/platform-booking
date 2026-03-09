@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { CalendarDaysIcon } from "@heroicons/react/24/outline";
+import { CalendarDaysIcon, CubeIcon, ServerStackIcon } from "@heroicons/react/24/outline";
 import { getDaysUntil, parseISODate, type Booking } from "@booking/shared";
 import platformsConfig from "@booking/shared/platforms";
 import { Button } from "@/components/ui/Button.tsx";
@@ -131,7 +131,14 @@ export function Bookings() {
                       className="hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors"
                     >
                       <td className="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">
-                        {platform?.name ?? booking.platformId}
+                        <span className="flex items-center gap-2">
+                          {platform?.kubernetes ? (
+                            <CubeIcon className="h-4 w-4 text-blue-500 dark:text-blue-400 shrink-0" />
+                          ) : (
+                            <ServerStackIcon className="h-4 w-4 text-surface-400 shrink-0" />
+                          )}
+                          {(platform?.id ?? booking.platformId).toUpperCase()}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="font-mono text-xs font-semibold text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-800 px-1.5 py-0.5 rounded-sm">

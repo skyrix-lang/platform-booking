@@ -1,5 +1,6 @@
 import Database, { type Database as DatabaseType } from "better-sqlite3";
 import { resolve, dirname } from "node:path";
+import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
   type Booking,
@@ -10,6 +11,7 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const dbPath = process.env.DB_PATH || resolve(__dirname, "../data/booking.db");
+mkdirSync(dirname(dbPath), { recursive: true });
 
 const db: DatabaseType = new Database(dbPath);
 

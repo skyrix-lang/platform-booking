@@ -87,7 +87,7 @@ export function BookingModal({
               Book Platform
             </h2>
             <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
-              {platform.name}
+              {platform.id.toUpperCase()}
             </p>
           </div>
           <button
