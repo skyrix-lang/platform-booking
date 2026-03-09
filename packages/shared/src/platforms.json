@@ -1,7 +1,7 @@
 {
   "platforms": [
-    { "id": "ic01", "description": "Redeployed nightly" },
-    { "id": "ic03", "description": "Redeployed nightly" },
+    { "id": "ic01", "nightly": true },
+    { "id": "ic03", "nightly": true },
     { "id": "ic04" },
     { "id": "ic05" },
     { "id": "dev01" },
@@ -9,9 +9,12 @@
     { "id": "dev03" },
     { "id": "ivt" },
     { "id": "freetest" },
-    { "id": "it01", "kubernetes": true, "description": "Redeployed nightly" },
-    { "id": "it03", "kubernetes": true, "description": "Redeployed nightly" },
+    { "id": "multi01" },
+    { "id": "it01", "kubernetes": true, "nightly": true },
+		{ "id": "it02", "kubernetes": true, "nightly": true },
+		{ "id": "it03", "kubernetes": true, "nightly": true },
     { "id": "d01", "kubernetes": true },
-    { "id": "d02", "kubernetes": true }
+    { "id": "d02", "kubernetes": true },
+    { "id": "d03", "kubernetes": true }
   ]
 }

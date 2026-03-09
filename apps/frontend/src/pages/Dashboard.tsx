@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { AnimatePresence, LayoutGroup } from "motion/react";
 import { getDaysUntil, type Booking } from "@booking/shared";
@@ -6,37 +6,20 @@ import platformsConfig from "@booking/shared/platforms";
 import { PlatformCard } from "@/components/ui/PlatformCard.tsx";
 import { BookingModal } from "@/components/ui/BookingModal.tsx";
 import { useDebounce } from "@/hooks/useDebounce.ts";
-import { fetchBookings, createBooking, deleteBooking } from "@/services/api.ts";
+import { useBookings } from "@/hooks/useBookings.ts";
+import { createBooking, deleteBooking } from "@/services/api.ts";
 import type { Platform } from "@/types/index.ts";
 
 type FilterMode = "all" | "available" | "booked";
 type TypeFilter = "all" | "swarm" | "k8s";
 
 export function Dashboard() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { bookings, setBookings, loading, error, setError } = useBookings();
   const [bookingTarget, setBookingTarget] = useState<Platform | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const debouncedSearch = useDebounce(search, 200);
-
-  const loadBookings = useCallback(async () => {
-    try {
-      const data = await fetchBookings();
-      setBookings(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load bookings");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
 
   const bookingsByPlatform = useMemo(() => {
     const map = new Map<string, Booking>();

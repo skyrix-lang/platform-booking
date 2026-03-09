@@ -5,12 +5,13 @@ import { toISODate, parseISODate } from "@booking/shared";
 interface CalendarProps {
   selectedDate: string;
   minDate: string;
+  maxDate?: string;
   onSelect: (date: string) => void;
 }
 
 const DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
-export function Calendar({ selectedDate, minDate, onSelect }: CalendarProps) {
+export function Calendar({ selectedDate, minDate, maxDate, onSelect }: CalendarProps) {
   const today = useMemo(() => toISODate(new Date()), []);
   const [viewYear, setViewYear] = useState(() => parseISODate(today).getFullYear());
   const [viewMonth, setViewMonth] = useState(() => parseISODate(today).getMonth());
@@ -105,7 +106,7 @@ export function Calendar({ selectedDate, minDate, onSelect }: CalendarProps) {
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
           const isToday = dateStr === today;
           const isSelected = dateStr === selectedDate;
-          const isPast = dateStr < minDate;
+          const isPast = dateStr < minDate || (maxDate != null && dateStr > maxDate);
           const isInRange = dateStr >= minDate && dateStr <= selectedDate;
           const dayNum = parseISODate(dateStr).getDate();
 

@@ -33,6 +33,7 @@ export function BookingModal({
   onClose,
 }: BookingModalProps) {
   const today = useMemo(() => toISODate(new Date()), []);
+  const maxDate = useMemo(() => (platform.nightly ? today : undefined), [platform.nightly, today]);
   const [trigram, setTrigram] = useState("");
   const [selectedDate, setSelectedDate] = useState(today);
   const [error, setError] = useState("");
@@ -129,6 +130,7 @@ export function BookingModal({
               <Calendar
                 selectedDate={selectedDate}
                 minDate={today}
+                maxDate={maxDate}
                 onSelect={(d) => {
                   setSelectedDate(d);
                   setError("");

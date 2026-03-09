@@ -6,6 +6,7 @@ export interface Platform {
   id: string;
   description?: string;
   kubernetes?: boolean;
+  nightly?: boolean;
 }
 
 export interface Booking {

@@ -5,9 +5,17 @@ import {
   type DeleteBookingRequest,
   type DeleteBookingResponse,
   type ErrorResponse,
+  type Platform,
   isValidTrigram,
+  toISODate,
 } from "@booking/shared";
+import platformsConfig from "@booking/shared/platforms" with { type: "json" };
 import { getAllBookings, createBooking, deleteBooking } from "../db.js";
+import { broadcast } from "../sse.js";
+
+const platformMap = new Map<string, Platform>(
+  (platformsConfig as { platforms: Platform[] }).platforms.map((p) => [p.id, p]),
+);
 
 export const bookingsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get<{ Reply: Booking[] }>("/", async () => {
@@ -31,7 +39,15 @@ export const bookingsRoutes: FastifyPluginAsync = async (fastify) => {
           .send({ error: "Trigram must be exactly 3 letters" });
       }
 
+      const platform = platformMap.get(platformId);
+      if (platform?.nightly && endDate > toISODate(new Date())) {
+        return reply
+          .status(400)
+          .send({ error: "Nightly platforms can only be booked for 1 day" });
+      }
+
       const booking = createBooking(platformId, trigram, endDate);
+      broadcast("bookings-updated");
       return reply.status(201).send(booking);
     },
   );
@@ -47,6 +63,7 @@ export const bookingsRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.status(404).send({ error: "Booking not found" });
     }
 
+    broadcast("bookings-updated");
     return { ok: true };
   });
 };

@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import { type HealthResponse } from "@booking/shared";
 import { platformsRoutes } from "./routes/platforms.js";
 import { bookingsRoutes } from "./routes/bookings.js";
+import { addClient } from "./sse.js";
 
 const fastify = Fastify({
   logger: true,
@@ -19,6 +20,17 @@ await fastify.register(cors, {
 
 fastify.register(platformsRoutes, { prefix: "/api/platforms" });
 fastify.register(bookingsRoutes, { prefix: "/api/bookings" });
+
+fastify.get("/api/events", (_request, reply) => {
+  reply.raw.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+  });
+  reply.raw.write("\n");
+  addClient(reply);
+  reply.hijack();
+});
 
 fastify.get<{ Reply: HealthResponse }>("/api/health", async () => {
   return { status: "ok" };

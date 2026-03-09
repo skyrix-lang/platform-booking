@@ -75,9 +75,9 @@ export function PlatformCard({
           </span>
         </div>
 
-        {platform.description && (
+        {(platform.description || platform.nightly) && (
           <p className="text-xs text-surface-500 dark:text-surface-400">
-            {platform.description}
+            {platform.nightly ? "Redeployed nightly" : platform.description}
           </p>
         )}
 

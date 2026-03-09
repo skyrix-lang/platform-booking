@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import { CalendarDaysIcon, CubeIcon, ServerStackIcon } from "@heroicons/react/24/outline";
-import { getDaysUntil, parseISODate, type Booking } from "@booking/shared";
+import { getDaysUntil, parseISODate } from "@booking/shared";
 import platformsConfig from "@booking/shared/platforms";
 import { Button } from "@/components/ui/Button.tsx";
-import { fetchBookings, deleteBooking } from "@/services/api.ts";
+import { useBookings } from "@/hooks/useBookings.ts";
+import { deleteBooking } from "@/services/api.ts";
 import type { Platform } from "@/types/index.ts";
 
 function formatDate(dateStr: string): string {
@@ -14,25 +15,7 @@ function formatDate(dateStr: string): string {
 }
 
 export function Bookings() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadBookings = useCallback(async () => {
-    try {
-      const data = await fetchBookings();
-      setBookings(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load bookings");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
+  const { bookings, setBookings, loading, error, setError } = useBookings();
 
   const platforms = platformsConfig.platforms as Platform[];
   const platformMap = useMemo(() => {
