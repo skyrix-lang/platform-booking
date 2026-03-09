@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
 import { type Platform } from "@booking/shared";
-import platformsConfig from "@booking/shared/platforms";
+import platformsConfig from "@booking/shared/platforms" with { type: "json" };
 
 export const platformsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get<{ Reply: Platform[] }>("/", async () => {
