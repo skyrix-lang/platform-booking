@@ -17,6 +17,11 @@ export interface Booking {
   bookedAt: string;
 }
 
+export interface BookingHistory extends Booking {
+  releasedAt: string;
+  reason: "released" | "expired";
+}
+
 // ============================================================================
 // API Request/Response Types
 // ============================================================================

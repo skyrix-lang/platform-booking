@@ -10,5 +10,11 @@
     "declaration": true,
     "sourceMap": true,
     "isolatedModules": true
-  }
+  },
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "apps/backend" },
+    { "path": "apps/frontend" }
+  ],
+  "files": []
 }

@@ -1,10 +1,10 @@
-import { useMemo } from "react";
-import { CalendarDaysIcon, CubeIcon, ServerStackIcon } from "@heroicons/react/24/outline";
-import { getDaysUntil, parseISODate } from "@booking/shared";
-import platformsConfig from "@booking/shared/platforms";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDaysIcon, ClockIcon, CubeIcon, ServerStackIcon } from "@heroicons/react/24/outline";
+import { type BookingHistory, getDaysUntil, parseISODate } from "@booking/shared";
 import { Button } from "@/components/ui/Button.tsx";
 import { useBookings } from "@/hooks/useBookings.ts";
-import { deleteBooking } from "@/services/api.ts";
+import { usePlatforms } from "@/hooks/usePlatforms.ts";
+import { deleteBooking, fetchBookingHistory } from "@/services/api.ts";
 import type { Platform } from "@/types/index.ts";
 
 function formatDate(dateStr: string): string {
@@ -14,10 +14,28 @@ function formatDate(dateStr: string): string {
   });
 }
 
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function Bookings() {
   const { bookings, setBookings, loading, error, setError } = useBookings();
+  const { platforms } = usePlatforms();
+  const [history, setHistory] = useState<BookingHistory[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
-  const platforms = platformsConfig.platforms as Platform[];
+  useEffect(() => {
+    fetchBookingHistory()
+      .then(setHistory)
+      .catch(() => setHistory([]))
+      .finally(() => setHistoryLoading(false));
+  }, [bookings]);
+
   const platformMap = useMemo(() => {
     const map = new Map<string, Platform>();
     for (const p of platforms) map.set(p.id, p);
@@ -152,6 +170,98 @@ export function Bookings() {
                         >
                           Release
                         </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
+          History
+        </h2>
+        <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5 font-mono">
+          Last 3 weeks
+        </p>
+      </div>
+
+      {historyLoading ? (
+        <div className="text-sm text-surface-500 dark:text-surface-400 py-8 text-center">
+          Loading history...
+        </div>
+      ) : history.length === 0 ? (
+        <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-sm p-12 text-center">
+          <ClockIcon className="h-10 w-10 text-surface-300 dark:text-surface-600 mx-auto" />
+          <p className="mt-3 text-sm text-surface-600 dark:text-surface-400">
+            No recent history
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-800/50">
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    Platform
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    Period
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    Released
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    Reason
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-100 dark:divide-surface-800">
+                {history.map((entry, i) => {
+                  const platform = platformMap.get(entry.platformId);
+                  return (
+                    <tr
+                      key={`${entry.platformId}-${entry.releasedAt}-${i}`}
+                      className="hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors"
+                    >
+                      <td className="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">
+                        <span className="flex items-center gap-2">
+                          {platform?.kubernetes ? (
+                            <CubeIcon className="h-4 w-4 text-blue-500 dark:text-blue-400 shrink-0" />
+                          ) : (
+                            <ServerStackIcon className="h-4 w-4 text-surface-400 shrink-0" />
+                          )}
+                          {(platform?.id ?? entry.platformId).toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-xs font-semibold text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-800 px-1.5 py-0.5 rounded-sm">
+                          {entry.trigram}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-surface-600 dark:text-surface-400 font-mono text-xs">
+                        {formatDate(entry.startDate)} → {formatDate(entry.endDate)}
+                      </td>
+                      <td className="px-4 py-3 text-surface-600 dark:text-surface-400 text-xs">
+                        {formatDateTime(entry.releasedAt)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium ${
+                            entry.reason === "expired"
+                              ? "bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400"
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400"
+                          }`}
+                        >
+                          {entry.reason === "expired" ? "Expired" : "Released"}
+                        </span>
                       </td>
                     </tr>
                   );

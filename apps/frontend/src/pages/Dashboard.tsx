@@ -2,11 +2,11 @@ import { useState, useMemo } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { AnimatePresence, LayoutGroup } from "motion/react";
 import { getDaysUntil, type Booking } from "@booking/shared";
-import platformsConfig from "@booking/shared/platforms";
 import { PlatformCard } from "@/components/ui/PlatformCard.tsx";
 import { BookingModal } from "@/components/ui/BookingModal.tsx";
 import { useDebounce } from "@/hooks/useDebounce.ts";
 import { useBookings } from "@/hooks/useBookings.ts";
+import { usePlatforms } from "@/hooks/usePlatforms.ts";
 import { createBooking, deleteBooking } from "@/services/api.ts";
 import type { Platform } from "@/types/index.ts";
 
@@ -14,12 +14,14 @@ type FilterMode = "all" | "available" | "booked";
 type TypeFilter = "all" | "swarm" | "k8s";
 
 export function Dashboard() {
-  const { bookings, setBookings, loading, error, setError } = useBookings();
+  const { bookings, setBookings, loading: bookingsLoading, error, setError } = useBookings();
+  const { platforms: rawPlatforms, loading: platformsLoading } = usePlatforms();
   const [bookingTarget, setBookingTarget] = useState<Platform | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const debouncedSearch = useDebounce(search, 200);
+  const loading = bookingsLoading || platformsLoading;
 
   const bookingsByPlatform = useMemo(() => {
     const map = new Map<string, Booking>();
@@ -30,8 +32,8 @@ export function Dashboard() {
   }, [bookings]);
 
   const platforms = useMemo(
-    () => [...(platformsConfig.platforms as Platform[])].sort((a, b) => a.id.localeCompare(b.id)),
-    [],
+    () => [...rawPlatforms].sort((a, b) => a.id.localeCompare(b.id)),
+    [rawPlatforms],
   );
 
   const filteredPlatforms = useMemo(() => {

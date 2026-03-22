@@ -1,25 +1,32 @@
 import { FastifyPluginAsync } from "fastify";
 import {
   type Booking,
+  type BookingHistory,
   type CreateBookingRequest,
   type DeleteBookingRequest,
   type DeleteBookingResponse,
   type ErrorResponse,
-  type Platform,
   isValidTrigram,
   toISODate,
 } from "@booking/shared";
-import platformsConfig from "@booking/shared/platforms" with { type: "json" };
-import { getAllBookings, createBooking, deleteBooking } from "../db.js";
+import {
+  getAllBookings,
+  createBooking,
+  deleteBooking,
+  getBookingHistory,
+  getPlatform,
+} from "../db.js";
 import { broadcast } from "../sse.js";
-
-const platformMap = new Map<string, Platform>(
-  (platformsConfig as { platforms: Platform[] }).platforms.map((p) => [p.id, p]),
-);
 
 export const bookingsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get<{ Reply: Booking[] }>("/", async () => {
     return getAllBookings();
+  });
+
+  fastify.get<{ Reply: BookingHistory[] }>("/history", async () => {
+    const since = new Date();
+    since.setDate(since.getDate() - 21);
+    return getBookingHistory(since.toISOString());
   });
 
   fastify.post<{ Body: CreateBookingRequest; Reply: Booking | ErrorResponse }>(
@@ -39,7 +46,7 @@ export const bookingsRoutes: FastifyPluginAsync = async (fastify) => {
           .send({ error: "Trigram must be exactly 3 letters" });
       }
 
-      const platform = platformMap.get(platformId);
+      const platform = getPlatform(platformId);
       if (platform?.nightly && endDate > toISODate(new Date())) {
         return reply
           .status(400)
