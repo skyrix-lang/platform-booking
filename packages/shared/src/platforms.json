@@ -15,6 +15,10 @@
 		{ "id": "it03", "kubernetes": true, "nightly": true },
     { "id": "d01", "kubernetes": true },
     { "id": "d02", "kubernetes": true },
-    { "id": "d03", "kubernetes": true }
+    { "id": "d03", "kubernetes": true },
+    { "id": "d04", "kubernetes": true },
+    { "id": "d05", "kubernetes": true },
+    { "id": "d06", "kubernetes": true },
+    { "id": "d07", "kubernetes": true }
   ]
 }
