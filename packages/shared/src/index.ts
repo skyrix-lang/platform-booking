@@ -32,8 +32,13 @@ export interface CreateBookingRequest {
   endDate: string;
 }
 
-export interface DeleteBookingRequest {
+export interface UpdateBookingRequest {
+  endDate: string;
+}
+
+export interface BookingParams {
   platformId: string;
+  trigram: string;
 }
 
 export interface DeleteBookingResponse {
@@ -91,6 +96,10 @@ export function toISODate(date: Date): string {
 export function parseISODate(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
+}
+
+export function isValidISODate(iso: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso) && toISODate(parseISODate(iso)) === iso;
 }
 
 export function getDaysUntil(endDate: string): number {

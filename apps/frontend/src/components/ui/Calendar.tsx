@@ -13,8 +13,8 @@ const DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 export function Calendar({ selectedDate, minDate, maxDate, onSelect }: CalendarProps) {
   const today = useMemo(() => toISODate(new Date()), []);
-  const [viewYear, setViewYear] = useState(() => parseISODate(today).getFullYear());
-  const [viewMonth, setViewMonth] = useState(() => parseISODate(today).getMonth());
+  const [viewYear, setViewYear] = useState(() => parseISODate(selectedDate).getFullYear());
+  const [viewMonth, setViewMonth] = useState(() => parseISODate(selectedDate).getMonth());
 
   const days = useMemo(() => {
     const first = new Date(viewYear, viewMonth, 1);

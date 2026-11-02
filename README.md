@@ -129,7 +129,8 @@ docker run -d \
 | `GET` | `/api/platforms` | List all platforms |
 | `GET` | `/api/bookings` | List active bookings |
 | `POST` | `/api/bookings` | Create a booking |
-| `DELETE` | `/api/bookings/:platformId` | Release a booking |
+| `PATCH` | `/api/bookings/:platformId/:trigram` | Change a booking's end date |
+| `DELETE` | `/api/bookings/:platformId/:trigram` | Release a booking |
 | `GET` | `/api/health` | Health check |
 
 ## License

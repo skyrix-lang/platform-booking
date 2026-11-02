@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/Button.tsx";
 import type { Platform, PlatformBooking } from "@/types/index.ts";
+import { getDaysUntil } from "@booking/shared";
 import {
   CalendarDaysIcon,
   CubeIcon,
@@ -10,10 +11,10 @@ import {
 
 interface PlatformCardProps {
   platform: Platform;
-  booking: PlatformBooking | undefined;
-  daysLeft: number | null;
+  bookings: PlatformBooking[];
   onBook: (platform: Platform) => void;
-  onRelease: (platformId: string) => void;
+  onEdit: (platform: Platform, booking: PlatformBooking) => void;
+  onRelease: (booking: PlatformBooking) => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -26,12 +27,12 @@ function formatDate(dateStr: string): string {
 
 export function PlatformCard({
   platform,
-  booking,
-  daysLeft,
+  bookings,
   onBook,
+  onEdit,
   onRelease,
 }: PlatformCardProps) {
-  const isBooked = !!booking;
+  const isBooked = bookings.length > 0;
 
   return (
     <motion.div
@@ -71,7 +72,11 @@ export function PlatformCard({
                 : "bg-success-100 text-success-700 dark:bg-success-500/15 dark:text-success-400"
             }`}
           >
-            {isBooked ? "Booked" : "Available"}
+            {!isBooked
+              ? "Available"
+              : bookings.length > 1
+                ? `${bookings.length} users`
+                : "Booked"}
           </span>
         </div>
 
@@ -81,54 +86,65 @@ export function PlatformCard({
           </p>
         )}
 
-        {isBooked && booking && (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key="booked"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-1.5 text-sm text-surface-600 dark:text-surface-400"
-            >
-              <div className="flex items-center gap-2">
-                <UserCircleIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
-                <span className="font-mono font-semibold text-surface-800 dark:text-surface-200">
-                  {booking.trigram}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CalendarDaysIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
-                <span className="text-surface-600 dark:text-surface-400">
-                  {formatDate(booking.startDate)} &rarr;{" "}
-                  {formatDate(booking.endDate)}
-                  {daysLeft !== null && (
+        <AnimatePresence initial={false}>
+          {bookings.map((booking) => {
+            const daysLeft = getDaysUntil(booking.endDate);
+            return (
+              <motion.div
+                key={booking.trigram}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-1.5 text-sm text-surface-600 dark:text-surface-400"
+              >
+                <div className="flex items-center gap-2">
+                  <UserCircleIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
+                  <span className="font-mono font-semibold text-surface-800 dark:text-surface-200">
+                    {booking.trigram}
+                  </span>
+                  <div className="ml-auto flex items-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(platform, booking)}
+                    >
+                      Edit date
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRelease(booking)}
+                    >
+                      Release
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CalendarDaysIcon className="h-4 w-4 text-surface-400 dark:text-surface-500" />
+                  <span className="text-surface-600 dark:text-surface-400">
+                    {formatDate(booking.startDate)} &rarr;{" "}
+                    {formatDate(booking.endDate)}
                     <span className="text-surface-400 dark:text-surface-500 ml-1">
                       ({daysLeft === 0 ? "last day" : `${daysLeft}d`})
                     </span>
-                  )}
-                </span>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        )}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       <div className="mt-auto border-t border-surface-100 dark:border-surface-800 p-3">
-        {isBooked ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            className="w-full"
-            onClick={() => onRelease(platform.id)}
-          >
-            Release
-          </Button>
-        ) : (
-          <Button size="sm" className="w-full" onClick={() => onBook(platform)}>
-            Book
-          </Button>
-        )}
+        <Button
+          variant={isBooked ? "secondary" : "primary"}
+          size="sm"
+          className="w-full"
+          onClick={() => onBook(platform)}
+        >
+          {isBooked ? "Join" : "Book"}
+        </Button>
       </div>
     </motion.div>
   );

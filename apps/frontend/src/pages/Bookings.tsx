@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDaysIcon, ClockIcon, CubeIcon, ServerStackIcon } from "@heroicons/react/24/outline";
-import { type BookingHistory, getDaysUntil, parseISODate } from "@booking/shared";
+import { AnimatePresence } from "motion/react";
+import { type Booking, type BookingHistory, getDaysUntil, parseISODate } from "@booking/shared";
+import { BookingModal } from "@/components/ui/BookingModal.tsx";
 import { Button } from "@/components/ui/Button.tsx";
 import { useBookings } from "@/hooks/useBookings.ts";
 import { usePlatforms } from "@/hooks/usePlatforms.ts";
-import { deleteBooking, fetchBookingHistory } from "@/services/api.ts";
+import { deleteBooking, fetchBookingHistory, updateBookingEndDate } from "@/services/api.ts";
 import type { Platform } from "@/types/index.ts";
 
 function formatDate(dateStr: string): string {
@@ -28,6 +30,7 @@ export function Bookings() {
   const { platforms } = usePlatforms();
   const [history, setHistory] = useState<BookingHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [editTarget, setEditTarget] = useState<Booking | null>(null);
 
   useEffect(() => {
     fetchBookingHistory()
@@ -47,10 +50,32 @@ export function Bookings() {
     [bookings],
   );
 
-  const handleRelease = async (platformId: string) => {
+  const handleEdit = async (_trigram: string, endDate: string) => {
+    if (!editTarget) return;
     try {
-      await deleteBooking(platformId);
-      setBookings((prev) => prev.filter((b) => b.platformId !== platformId));
+      const updated = await updateBookingEndDate(
+        editTarget.platformId,
+        editTarget.trigram,
+        endDate,
+      );
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.platformId === updated.platformId && b.trigram === updated.trigram ? updated : b,
+        ),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update booking");
+    } finally {
+      setEditTarget(null);
+    }
+  };
+
+  const handleRelease = async ({ platformId, trigram }: Booking) => {
+    try {
+      await deleteBooking(platformId, trigram);
+      setBookings((prev) =>
+        prev.filter((b) => b.platformId !== platformId || b.trigram !== trigram),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to release platform");
     }
@@ -128,7 +153,7 @@ export function Bookings() {
                   const daysLeft = getDaysUntil(booking.endDate);
                   return (
                     <tr
-                      key={booking.platformId}
+                      key={`${booking.platformId}-${booking.trigram}`}
                       className="hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors"
                     >
                       <td className="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">
@@ -162,11 +187,18 @@ export function Bookings() {
                           {daysLeft === 0 ? "Last day" : `${daysLeft}d left`}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRelease(booking.platformId)}
+                          onClick={() => setEditTarget(booking)}
+                        >
+                          Edit date
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRelease(booking)}
                         >
                           Release
                         </Button>
@@ -271,6 +303,17 @@ export function Bookings() {
           </div>
         </div>
       )}
+
+      <AnimatePresence>
+        {editTarget && (
+          <BookingModal
+            platform={platformMap.get(editTarget.platformId) ?? { id: editTarget.platformId }}
+            booking={editTarget}
+            onConfirm={handleEdit}
+            onClose={() => setEditTarget(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

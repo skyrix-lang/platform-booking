@@ -1,13 +1,13 @@
 import { useState, useMemo } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { AnimatePresence, LayoutGroup } from "motion/react";
-import { getDaysUntil, type Booking } from "@booking/shared";
+import type { Booking } from "@booking/shared";
 import { PlatformCard } from "@/components/ui/PlatformCard.tsx";
 import { BookingModal } from "@/components/ui/BookingModal.tsx";
 import { useDebounce } from "@/hooks/useDebounce.ts";
 import { useBookings } from "@/hooks/useBookings.ts";
 import { usePlatforms } from "@/hooks/usePlatforms.ts";
-import { createBooking, deleteBooking } from "@/services/api.ts";
+import { createBooking, deleteBooking, updateBookingEndDate } from "@/services/api.ts";
 import type { Platform } from "@/types/index.ts";
 
 type FilterMode = "all" | "available" | "booked";
@@ -17,6 +17,7 @@ export function Dashboard() {
   const { bookings, setBookings, loading: bookingsLoading, error, setError } = useBookings();
   const { platforms: rawPlatforms, loading: platformsLoading } = usePlatforms();
   const [bookingTarget, setBookingTarget] = useState<Platform | null>(null);
+  const [editTarget, setEditTarget] = useState<{ platform: Platform; booking: Booking } | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -24,9 +25,10 @@ export function Dashboard() {
   const loading = bookingsLoading || platformsLoading;
 
   const bookingsByPlatform = useMemo(() => {
-    const map = new Map<string, Booking>();
-    for (const b of bookings) {
-      map.set(b.platformId, b);
+    const map = new Map<string, Booking[]>();
+    const sorted = [...bookings].sort((a, b) => a.trigram.localeCompare(b.trigram));
+    for (const b of sorted) {
+      map.set(b.platformId, [...(map.get(b.platformId) ?? []), b]);
     }
     return map;
   }, [bookings]);
@@ -42,7 +44,9 @@ export function Dashboard() {
       const matchesSearch =
         !q ||
         p.id.toLowerCase().includes(q) ||
-        bookingsByPlatform.get(p.id)?.trigram.toLowerCase().includes(q);
+        bookingsByPlatform
+          .get(p.id)
+          ?.some((b) => b.trigram.toLowerCase().includes(q));
 
       if (!matchesSearch) return false;
 
@@ -73,20 +77,46 @@ export function Dashboard() {
     if (!bookingTarget) return;
     try {
       const newBooking = await createBooking(bookingTarget.id, trigram, endDate);
+      // An SSE refresh may already have delivered this booking.
       setBookings((prev) => [
-        ...prev.filter((b) => b.platformId !== bookingTarget.id),
+        ...prev.filter(
+          (b) => b.platformId !== newBooking.platformId || b.trigram !== newBooking.trigram,
+        ),
         newBooking,
       ]);
-      setBookingTarget(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to book platform");
+    } finally {
+      setBookingTarget(null);
     }
   };
 
-  const handleRelease = async (platformId: string) => {
+  const handleEdit = async (_trigram: string, endDate: string) => {
+    if (!editTarget) return;
     try {
-      await deleteBooking(platformId);
-      setBookings((prev) => prev.filter((b) => b.platformId !== platformId));
+      const updated = await updateBookingEndDate(
+        editTarget.booking.platformId,
+        editTarget.booking.trigram,
+        endDate,
+      );
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.platformId === updated.platformId && b.trigram === updated.trigram ? updated : b,
+        ),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update booking");
+    } finally {
+      setEditTarget(null);
+    }
+  };
+
+  const handleRelease = async ({ platformId, trigram }: Booking) => {
+    try {
+      await deleteBooking(platformId, trigram);
+      setBookings((prev) =>
+        prev.filter((b) => b.platformId !== platformId || b.trigram !== trigram),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to release platform");
     }
@@ -184,19 +214,16 @@ export function Dashboard() {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   <AnimatePresence mode="popLayout">
-                    {swarmPlatforms.map((platform) => {
-                      const booking = bookingsByPlatform.get(platform.id);
-                      return (
-                        <PlatformCard
-                          key={platform.id}
-                          platform={platform}
-                          booking={booking}
-                          daysLeft={booking ? getDaysUntil(booking.endDate) : null}
-                          onBook={setBookingTarget}
-                          onRelease={handleRelease}
-                        />
-                      );
-                    })}
+                    {swarmPlatforms.map((platform) => (
+                      <PlatformCard
+                        key={platform.id}
+                        platform={platform}
+                        bookings={bookingsByPlatform.get(platform.id) ?? []}
+                        onBook={setBookingTarget}
+                        onEdit={(platform, booking) => setEditTarget({ platform, booking })}
+                        onRelease={handleRelease}
+                      />
+                    ))}
                   </AnimatePresence>
                 </div>
               </section>
@@ -209,19 +236,16 @@ export function Dashboard() {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   <AnimatePresence mode="popLayout">
-                    {k8sPlatforms.map((platform) => {
-                      const booking = bookingsByPlatform.get(platform.id);
-                      return (
-                        <PlatformCard
-                          key={platform.id}
-                          platform={platform}
-                          booking={booking}
-                          daysLeft={booking ? getDaysUntil(booking.endDate) : null}
-                          onBook={setBookingTarget}
-                          onRelease={handleRelease}
-                        />
-                      );
-                    })}
+                    {k8sPlatforms.map((platform) => (
+                      <PlatformCard
+                        key={platform.id}
+                        platform={platform}
+                        bookings={bookingsByPlatform.get(platform.id) ?? []}
+                        onBook={setBookingTarget}
+                        onEdit={(platform, booking) => setEditTarget({ platform, booking })}
+                        onRelease={handleRelease}
+                      />
+                    ))}
                   </AnimatePresence>
                 </div>
               </section>
@@ -234,8 +258,17 @@ export function Dashboard() {
         {bookingTarget && (
           <BookingModal
             platform={bookingTarget}
+            takenTrigrams={bookingsByPlatform.get(bookingTarget.id)?.map((b) => b.trigram)}
             onConfirm={handleBook}
             onClose={() => setBookingTarget(null)}
+          />
+        )}
+        {editTarget && (
+          <BookingModal
+            platform={editTarget.platform}
+            booking={editTarget.booking}
+            onConfirm={handleEdit}
+            onClose={() => setEditTarget(null)}
           />
         )}
       </AnimatePresence>

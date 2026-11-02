@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button.tsx";
 import { Calendar } from "@/components/ui/Calendar.tsx";
-import type { Platform } from "@/types/index.ts";
+import type { Platform, PlatformBooking } from "@/types/index.ts";
 import { isValidTrigram, parseISODate, toISODate } from "@booking/shared";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { motion } from "motion/react";
@@ -9,6 +9,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 interface BookingModalProps {
   platform: Platform;
+  /** When set, the modal edits this booking's release date instead of creating one. */
+  booking?: PlatformBooking;
+  /** Trigrams already on this platform, when creating a booking. */
+  takenTrigrams?: string[];
   onConfirm: (trigram: string, endDate: string) => void;
   onClose: () => void;
 }
@@ -29,13 +33,16 @@ function diffDays(a: string, b: string): number {
 
 export function BookingModal({
   platform,
+  booking,
+  takenTrigrams = [],
   onConfirm,
   onClose,
 }: BookingModalProps) {
   const today = useMemo(() => toISODate(new Date()), []);
   const maxDate = useMemo(() => (platform.nightly ? today : undefined), [platform.nightly, today]);
+  const startDate = booking?.startDate ?? today;
   const [trigram, setTrigram] = useState("");
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(booking?.endDate ?? today);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -51,13 +58,21 @@ export function BookingModal({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  const days = diffDays(today, selectedDate);
+  const days = diffDays(startDate, selectedDate);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (booking) {
+      onConfirm(booking.trigram, selectedDate);
+      return;
+    }
     const trimmed = trigram.trim().toUpperCase();
     if (!isValidTrigram(trimmed)) {
       setError("Trigram must be exactly 3 letters");
+      return;
+    }
+    if (takenTrigrams.includes(trimmed)) {
+      setError(`${trimmed} has already booked this platform`);
       return;
     }
     onConfirm(trimmed, selectedDate);
@@ -85,10 +100,13 @@ export function BookingModal({
         <div className="flex items-center justify-between px-4 py-3 border-b border-surface-200 dark:border-surface-800">
           <div>
             <h2 className="text-sm font-semibold text-surface-900 dark:text-surface-100">
-              Book Platform
+              {booking ? "Edit Release Date" : "Book Platform"}
             </h2>
             <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
               {platform.id.toUpperCase()}
+              {booking && ` · ${booking.trigram}`}
+              {takenTrigrams.length > 0 &&
+                ` · Also here: ${takenTrigrams.join(", ")}`}
             </p>
           </div>
           <button
@@ -100,27 +118,29 @@ export function BookingModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <label
-              htmlFor="trigram"
-              className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1.5"
-            >
-              Your trigram name
-            </label>
-            <input
-              ref={inputRef}
-              id="trigram"
-              type="text"
-              maxLength={3}
-              placeholder="ABC"
-              value={trigram}
-              onChange={(e) => {
-                setTrigram(e.target.value.toUpperCase());
-                setError("");
-              }}
-              className="w-full px-3 py-2 rounded-sm border border-surface-300 dark:border-surface-700 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm font-mono uppercase tracking-widest placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            />
-          </div>
+          {!booking && (
+            <div>
+              <label
+                htmlFor="trigram"
+                className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1.5"
+              >
+                Your trigram name
+              </label>
+              <input
+                ref={inputRef}
+                id="trigram"
+                type="text"
+                maxLength={3}
+                placeholder="ABC"
+                value={trigram}
+                onChange={(e) => {
+                  setTrigram(e.target.value.toUpperCase());
+                  setError("");
+                }}
+                className="w-full px-3 py-2 rounded-sm border border-surface-300 dark:border-surface-700 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm font-mono uppercase tracking-widest placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1.5">
@@ -138,7 +158,7 @@ export function BookingModal({
               />
             </div>
             <p className="text-xs text-surface-500 dark:text-surface-400 mt-2 font-mono">
-              {formatDateReadable(today)} → {formatDateReadable(selectedDate)}{" "}
+              {formatDateReadable(startDate)} → {formatDateReadable(selectedDate)}{" "}
               <span className="text-surface-400 dark:text-surface-500">
                 ({days}d)
               </span>
@@ -155,7 +175,11 @@ export function BookingModal({
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" size="sm">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={selectedDate === booking?.endDate}
+            >
               Confirm
             </Button>
           </div>

@@ -27,6 +27,23 @@ export async function createBooking(
   return res.json();
 }
 
+export async function updateBookingEndDate(
+  platformId: string,
+  trigram: string,
+  endDate: string,
+): Promise<Booking> {
+  const res = await fetch(`${API_URL}/api/bookings/${platformId}/${trigram}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ endDate }),
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to update booking");
+  }
+  return res.json();
+}
+
 export async function fetchBookingHistory(): Promise<BookingHistory[]> {
   const res = await fetch(`${API_URL}/api/bookings/history`);
   if (!res.ok) {
@@ -35,8 +52,11 @@ export async function fetchBookingHistory(): Promise<BookingHistory[]> {
   return res.json();
 }
 
-export async function deleteBooking(platformId: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/bookings/${platformId}`, {
+export async function deleteBooking(
+  platformId: string,
+  trigram: string,
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/bookings/${platformId}/${trigram}`, {
     method: "DELETE",
   });
   if (!res.ok) {

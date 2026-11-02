@@ -20,15 +20,34 @@ const db: DatabaseType = new Database(dbPath);
 
 db.pragma("journal_mode = WAL");
 
-db.exec(`
+const createBookingsTable = `
   CREATE TABLE IF NOT EXISTS bookings (
-    platform_id TEXT PRIMARY KEY,
+    platform_id TEXT NOT NULL,
     trigram TEXT NOT NULL,
     start_date TEXT NOT NULL,
     end_date TEXT NOT NULL,
-    booked_at TEXT NOT NULL
+    booked_at TEXT NOT NULL,
+    PRIMARY KEY (platform_id, trigram)
   )
-`);
+`;
+
+db.exec(createBookingsTable);
+
+// Databases created before platforms could be shared have platform_id as the
+// only key. SQLite cannot alter a primary key, so the table has to be rebuilt.
+const bookingsColumns = db.pragma("table_info(bookings)") as { pk: number }[];
+if (bookingsColumns.filter((column) => column.pk > 0).length === 1) {
+  db.transaction(() => {
+    db.exec("ALTER TABLE bookings RENAME TO bookings_single_user");
+    db.exec(createBookingsTable);
+    db.exec(`
+      INSERT INTO bookings (platform_id, trigram, start_date, end_date, booked_at)
+      SELECT platform_id, trigram, start_date, end_date, booked_at
+      FROM bookings_single_user
+    `);
+    db.exec("DROP TABLE bookings_single_user");
+  })();
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS platforms (
@@ -161,11 +180,15 @@ export function getAllBookings(): Booking[] {
   return rows.map(rowToBooking);
 }
 
+/** Returns undefined when this trigram already has this platform booked. */
 export function createBooking(
   platformId: string,
   trigram: string,
   endDate: string,
-): Booking {
+): Booking | undefined {
+  // An expired booking must not count as a conflict.
+  cleanExpired();
+
   const booking: Booking = {
     platformId,
     trigram: normalizeTrigram(trigram),
@@ -174,9 +197,10 @@ export function createBooking(
     bookedAt: new Date().toISOString(),
   };
 
-  db.prepare(`
-    INSERT OR REPLACE INTO bookings (platform_id, trigram, start_date, end_date, booked_at)
+  const result = db.prepare(`
+    INSERT INTO bookings (platform_id, trigram, start_date, end_date, booked_at)
     VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT (platform_id, trigram) DO NOTHING
   `).run(
     booking.platformId,
     booking.trigram,
@@ -185,19 +209,35 @@ export function createBooking(
     booking.bookedAt,
   );
 
-  return booking;
+  return result.changes > 0 ? booking : undefined;
 }
 
-export function deleteBooking(platformId: string): boolean {
+export function updateBookingEndDate(
+  platformId: string,
+  trigram: string,
+  endDate: string,
+): Booking | undefined {
+  // An expired booking must go to history, not be revived by a new end date.
+  cleanExpired();
+  const row = db
+    .prepare(
+      "UPDATE bookings SET end_date = ? WHERE platform_id = ? AND trigram = ? RETURNING *",
+    )
+    .get(endDate, platformId, normalizeTrigram(trigram)) as BookingRow | undefined;
+  return row ? rowToBooking(row) : undefined;
+}
+
+export function deleteBooking(platformId: string, trigram: string): boolean {
   const now = new Date().toISOString();
+  const normalized = normalizeTrigram(trigram);
   db.prepare(`
     INSERT INTO booking_history (platform_id, trigram, start_date, end_date, booked_at, released_at, reason)
     SELECT platform_id, trigram, start_date, end_date, booked_at, ?, 'released'
-    FROM bookings WHERE platform_id = ?
-  `).run(now, platformId);
+    FROM bookings WHERE platform_id = ? AND trigram = ?
+  `).run(now, platformId, normalized);
   const result = db
-    .prepare("DELETE FROM bookings WHERE platform_id = ?")
-    .run(platformId);
+    .prepare("DELETE FROM bookings WHERE platform_id = ? AND trigram = ?")
+    .run(platformId, normalized);
   return result.changes > 0;
 }
 
