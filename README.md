@@ -269,36 +269,53 @@ and commit both. `yarn verify` fails when the generated client is stale.
 
 ## Deploy
 
-The previous version ran as one container on port 80 (or, with its compose
-file, a `frontend` and a `backend` container), with its SQLite file at
-`/app/data/booking.db` in a volume: `booking-data` with its README's
-`docker run`, `<folder>_backend-data` with its compose file. `docker ps` and
-`docker volume ls` show yours: use their names below. This one runs as three
-services, `docker/compose.production.yaml`: Postgres, a migration step, and
-the app, which also answers on port 80 (`APP_PORT`), so your HTTPS proxy
-keeps pointing at the same port. The app speaks plain HTTP: keep it behind
-that proxy, which must set `X-Forwarded-For`. `PUBLIC_URL` is the https
-address people use, the old `CORS_ORIGINS` (the server refuses to start with
-an http one in production).
+This version runs as three services, `docker/compose.production.yaml`:
+Postgres, a migration step, and the app. The app answers on port 80, as
+before, so your HTTPS proxy keeps pointing at the same place. The app
+speaks plain HTTP: keep it behind that proxy, which must set
+`X-Forwarded-For`.
 
-First, on the server, in this repository, write the settings to
-`docker/.env`. Compose reads it for every command run with
-`-f docker/compose.production.yaml`, so later commands need nothing exported.
-Git and image builds ignore it.
+### Settings: `docker/.env`
+
+On the server, in this repository:
 
 ```bash
-cat > docker/.env <<EOF
-PUBLIC_URL=https://booking.example.com
-POSTGRES_PASSWORD=$(openssl rand -hex 24)
-TZ=Europe/Paris
-EOF
+cp docker/.env.example docker/.env
 chmod 600 docker/.env
+openssl rand -hex 24   # paste it as POSTGRES_PASSWORD
 ```
 
-`TZ` is the team's zone: whose "today" ends bookings. Keep the password
-letters and digits, as `-hex` makes it: it goes into a URL, where a `/` or
-`@` breaks it. Then replace the previous container. Run the steps one by one,
-and go on only when one succeeds:
+Then fill in `docker/.env`. It needs only three values:
+
+| Setting             | What to put                                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `PUBLIC_URL`        | the https address people type, such as `https://booking.example.com`                                      |
+| `POSTGRES_PASSWORD` | a new password, letters and digits only (the `openssl` output). Keep it: the database keeps the first one |
+| `TZ`                | the team's time zone, such as `Europe/Paris`: a booking ends at midnight there                            |
+
+Compared with the previous version's `.env`:
+
+| Before                                 | Now                                                   |
+| -------------------------------------- | ----------------------------------------------------- |
+| `CORS_ORIGINS`                         | `PUBLIC_URL`                                          |
+| `FRONTEND_PORT=80`                     | `APP_PORT`, 80 by default: leave it out               |
+| `DB_PATH`                              | gone: the data moves to Postgres, `POSTGRES_PASSWORD` |
+| `VITE_API_URL`, `BACKEND_PORT`, `HOST` | gone: one container serves the site and the API       |
+| (none)                                 | `TZ`                                                  |
+
+Nothing else: sign-in stays off, as before. Compose reads `docker/.env` for
+every `docker compose -f docker/compose.production.yaml` command; git and
+image builds ignore it.
+
+### Replace the previous container
+
+Find the old container and its data volume: `docker ps` and
+`docker volume ls`. With the old README's `docker run`, the volume is
+`booking-data`; with its compose file, there are two containers (`frontend`
+and `backend`) and the volume is `<folder>_backend-data`. Replace
+`<old container>` and `booking-data` below with yours.
+
+Run the steps one by one, and go on only when one succeeds:
 
 ```bash
 docker compose -f docker/compose.production.yaml build
@@ -329,6 +346,8 @@ otherwise the defaults stay. A platform id the new site can't use in a URL
 (with a slash or a space) is skipped, and its bookings go to the history; so
 is an active booking whose trigram isn't three letters.
 
+### Going back
+
 Keep the stopped old container and its volume until you've checked the new
 site: never `docker compose down -v` in the old version's folder, which
 deletes the volume. To go back, `docker compose -f
@@ -337,10 +356,14 @@ the old data is as it was at the stop, and changes made on the new site since
 are not in it. Once you're sure, `docker rm` the old container, and remove
 its volume when you no longer want it as a backup.
 
-Later deploys are `git pull` and
+### Later deploys
+
+`git pull`, then
 `docker compose -f docker/compose.production.yaml up -d --build`: the
 `migrate` service applies new migrations before the app starts, and adds the
 default platforms only to an empty table.
+
+### The image
 
 `yarn docker:build` builds the app image alone, and its `migrate` stage
 (`--target migrate`) is the migration step.
