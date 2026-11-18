@@ -24,7 +24,8 @@ Object.assign(process.env, {
   // Production requires at least 32 characters (apps/bff/src/env.ts).
   SESSION_SECRET: "e2e-secret-not-for-production-0123456789",
   OIDC_ISSUER:
-    process.env.E2E_OIDC_ISSUER ?? "http://localhost:8180/realms/platform-booking",
+    process.env.E2E_OIDC_ISSUER ??
+    "http://localhost:8180/realms/platform-booking",
   OIDC_CLIENT_ID: "platform-booking-web",
   OIDC_CLIENT_SECRET: "platform-booking-web-dev-secret",
   // Tests never send real mail, even with SMTP settings in .env: an empty

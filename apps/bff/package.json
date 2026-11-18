@@ -14,10 +14,10 @@
     "export-openapi": "tsx scripts/export-openapi.ts"
   },
   "dependencies": {
-    "@platform-booking/core": "workspace:^",
-    "@platform-booking/db": "workspace:^",
     "@hono/node-server": "^2.1.6",
     "@hono/zod-openapi": "^1.6.3",
+    "@platform-booking/core": "workspace:^",
+    "@platform-booking/db": "workspace:^",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.16",
     "nodemailer": "^10.5.0",
