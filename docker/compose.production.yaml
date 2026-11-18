@@ -1,16 +1,12 @@
 # Production: Postgres, the migrations, then the app, in place of the previous
 # single container. See "Deploy" in the README.
 #
-#   docker/.env (read by compose, ignored by git and image builds):
-#     PUBLIC_URL=https://booking.example.com
-#     POSTGRES_PASSWORD=<letters and digits: openssl rand -hex 24>
-#     TZ=Europe/Paris
+#   cp docker/.env.example docker/.env   # then fill it in
 #   docker compose -f docker/compose.production.yaml up -d --build
 #
 # The app answers on port 80 (APP_PORT) like the previous image, as plain HTTP:
 # put it behind your HTTPS proxy, which sets X-Forwarded-For. PUBLIC_URL must
-# be the https address people use. Nobody signs in, as before; set OIDC_* (and
-# SESSION_SECRET) only to turn sign-in on.
+# be the https address people use. Nobody signs in, as before.
 name: platform-booking
 
 services:
