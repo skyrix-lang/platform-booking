@@ -1,7 +1,10 @@
 # Production: Postgres, the migrations, then the app, in place of the previous
 # single container. See "Deploy" in the README.
 #
-#   export PUBLIC_URL=https://booking.example.com POSTGRES_PASSWORD=... TZ=Europe/Paris
+#   docker/.env (read by compose, ignored by git and image builds):
+#     PUBLIC_URL=https://booking.example.com
+#     POSTGRES_PASSWORD=<letters and digits: openssl rand -hex 24>
+#     TZ=Europe/Paris
 #   docker compose -f docker/compose.production.yaml up -d --build
 #
 # The app answers on port 80 (APP_PORT) like the previous image, as plain HTTP:
@@ -16,7 +19,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: platform_booking
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      # It goes into DATABASE_URL below: letters and digits only.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in docker/.env}
       POSTGRES_DB: platform_booking
     volumes:
       - db:/var/lib/postgresql

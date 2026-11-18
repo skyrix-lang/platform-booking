@@ -269,48 +269,73 @@ and commit both. `yarn verify` fails when the generated client is stale.
 
 ## Deploy
 
-The previous version ran as one container on port 80 with its SQLite file in a
-volume at `/app/data/booking.db` (`booking-data` with its README's
-`docker run`; with its compose file, `<project>_backend-data`, which
-`docker volume ls` shows). Use your volume's name below. This one runs as three
+The previous version ran as one container on port 80 (or, with its compose
+file, a `frontend` and a `backend` container), with its SQLite file at
+`/app/data/booking.db` in a volume: `booking-data` with its README's
+`docker run`, `<folder>_backend-data` with its compose file. `docker ps` and
+`docker volume ls` show yours: use their names below. This one runs as three
 services, `docker/compose.production.yaml`: Postgres, a migration step, and
-the app, which also answers on port 80 (`APP_PORT`). The app speaks plain
-HTTP: keep it behind your HTTPS proxy, which must set `X-Forwarded-For`.
-`PUBLIC_URL` must be the https address (the server refuses to start with an
-http one in production).
+the app, which also answers on port 80 (`APP_PORT`), so your HTTPS proxy
+keeps pointing at the same port. The app speaks plain HTTP: keep it behind
+that proxy, which must set `X-Forwarded-For`. `PUBLIC_URL` is the https
+address people use, the old `CORS_ORIGINS` (the server refuses to start with
+an http one in production).
 
-To replace the previous container:
+First, on the server, in this repository, write the settings to
+`docker/.env`. Compose reads it for every command run with
+`-f docker/compose.production.yaml`, so later commands need nothing exported.
+Git and image builds ignore it.
 
 ```bash
-export PUBLIC_URL=https://booking.example.com   # the address people use
-export POSTGRES_PASSWORD="$(openssl rand -base64 24)"   # keep it: every later `up` needs it
-export TZ=Europe/Paris                          # the team's zone: whose "today" ends bookings
+cat > docker/.env <<EOF
+PUBLIC_URL=https://booking.example.com
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+TZ=Europe/Paris
+EOF
+chmod 600 docker/.env
+```
+
+`TZ` is the team's zone: whose "today" ends bookings. Keep the password
+letters and digits, as `-hex` makes it: it goes into a URL, where a `/` or
+`@` breaks it. Then replace the previous container. Run the steps one by one,
+and go on only when one succeeds:
+
+```bash
 docker compose -f docker/compose.production.yaml build
 
 # 1. The database, the migrations and the default platforms.
 docker compose -f docker/compose.production.yaml run --rm migrate
 
-# 2. Stop the previous container, so nothing changes during the copy, then
-#    import its data (platforms, active bookings, history) from its volume.
+# 2. Stop the previous container (both, with its compose file), so nothing
+#    changes during the copy, then import its data (platforms, active
+#    bookings, history) from its volume.
 docker stop <old container>
 docker compose -f docker/compose.production.yaml run --rm \
   -v booking-data:/legacy:ro migrate yarn db:import-sqlite /legacy/booking.db
 
 # 3. Start the app on port 80 in its place.
-docker rm <old container>
 docker compose -f docker/compose.production.yaml up -d
+docker compose -f docker/compose.production.yaml ps   # app: "healthy"
 ```
 
 The import opens the old file read-only and prints what it copied, and what it
-skipped and why (a row with an invalid date, a duplicate). Bookings of a
-platform that no longer exists go to the history as released. It refuses to
-run when Postgres already holds bookings or history, so it can't duplicate
-anything. When the old file has a platforms table (any version that could
-edit platforms), its list replaces the default one; otherwise the defaults
-stay. A platform id the new site can't use in a URL (with a slash or a space)
-is skipped, and its bookings go to the history; so is an active booking whose
-trigram isn't three letters. Keep the old
-volume until you've checked the new site.
+skipped and why (a row with an invalid date, a duplicate). It reads the
+file's write-ahead log too, so the last bookings made before the stop are
+there. Bookings of a platform that no longer exists go to the history as
+released. It refuses to run when Postgres already holds bookings or history,
+so it can't duplicate anything. When the old file has a platforms table (any
+version that could edit platforms), its list replaces the default one;
+otherwise the defaults stay. A platform id the new site can't use in a URL
+(with a slash or a space) is skipped, and its bookings go to the history; so
+is an active booking whose trigram isn't three letters.
+
+Keep the stopped old container and its volume until you've checked the new
+site: never `docker compose down -v` in the old version's folder, which
+deletes the volume. To go back, `docker compose -f
+docker/compose.production.yaml stop app` and `docker start <old container>`:
+the old data is as it was at the stop, and changes made on the new site since
+are not in it. Once you're sure, `docker rm` the old container, and remove
+its volume when you no longer want it as a backup.
 
 Later deploys are `git pull` and
 `docker compose -f docker/compose.production.yaml up -d --build`: the
