@@ -1,5 +1,5 @@
 import * as client from "openid-client";
-import { env } from "./env";
+import { env, requireSignIn } from "./env";
 
 // The BFF is a confidential OpenID Connect client (authorization code + PKCE),
 // so the client secret stays on the server and the browser never sees a token.
@@ -9,15 +9,15 @@ let config: Promise<client.Configuration> | undefined;
 
 /** The provider's configuration, discovered once and then reused. */
 export function oidcConfig(): Promise<client.Configuration> {
-  const { OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET } = env();
+  const { issuer, clientId, clientSecret } = requireSignIn();
   config ??= client
     .discovery(
-      new URL(OIDC_ISSUER),
-      OIDC_CLIENT_ID,
+      new URL(issuer),
+      clientId,
       undefined,
-      client.ClientSecretBasic(OIDC_CLIENT_SECRET),
+      client.ClientSecretBasic(clientSecret),
       // Keycloak runs on plain http:// locally. A production issuer is https://.
-      OIDC_ISSUER.startsWith("http://")
+      issuer.startsWith("http://")
         ? { execute: [client.allowInsecureRequests] }
         : undefined,
     )

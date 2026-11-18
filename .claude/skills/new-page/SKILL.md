@@ -31,8 +31,9 @@ export const Route = createFileRoute("/pricing")({
 
 - Validate search params with Zod in `validateSearch`; use `.catch()` so a bad
   value falls back instead of erroring.
-- An app page calls `requireUser(context.queryClient, location.href)` from
-  `src/auth.ts` in `beforeLoad`. The BFF still checks every API call.
+- The site is open: no page asks for a sign-in (`docs/decisions.md`). A page
+  that must be signed in would check `/api/me` in `beforeLoad` and redirect to
+  `/sign-in`, and the BFF would check its API calls.
 - Wrap the page component in `pageFor(route, Page)` (`src/overrides.ts`) so a
   customer app can replace it.
 - Feature screens live in a `packages/feature-*` package; the route file only
@@ -41,7 +42,7 @@ export const Route = createFileRoute("/pricing")({
 |            | Public page                                          | App page                                |
 | ---------- | ---------------------------------------------------- | --------------------------------------- |
 | Meta       | `usePageMeta({ title })`                             | `usePageMeta({ title, noindex: true })` |
-| Auth       | None                                                 | `requireUser` in `beforeLoad`           |
+| Auth       | None                                                 | None (the site is open)                 |
 | Sitemap    | Add to `PUBLIC_PATHS` in `packages/core/src/site.ts` | Leave out                               |
 | Loading UI | Avoid layout shift                                   | Skeleton with `role="status"`           |
 

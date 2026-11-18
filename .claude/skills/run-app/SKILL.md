@@ -19,18 +19,19 @@ finish with `yarn verify` and `yarn test`.
   `.env`, starts Postgres and Keycloak, creates the database and migrates it.
 - Pending migrations: `yarn db:migrate`. Don't read `.env`: it holds secrets.
 
-## 2. Sign in
+## 2. Sign in (rarely needed)
 
-`yarn dev:session [email] [--seed]` creates a session directly in the local
-database and prints the cookie. The default user is `agent@example.test`;
-`--seed` gives it the demo bookings. It refuses non-local databases.
+The site is open: every page and API route works without a session, and
+`yarn setup` adds the default platforms (`yarn db:seed` again if they were
+deleted).
 
 ```bash
-yarn dev:session --seed
-curl -H 'Cookie: session=<token>' http://localhost:3000/api/bookings
+curl http://localhost:3000/api/bookings
 ```
 
-For a browser, use `storageState: "e2e/.auth/dev-session.json"` in a Playwright
+Only to check the optional sign-in: `yarn dev:session [email]` creates a
+session directly in the local database and prints the cookie (default user
+`agent@example.test`; it refuses non-local databases). For a browser, use `storageState: "e2e/.auth/dev-session.json"` in a Playwright
 script. For the real flow, open `/sign-in` and log in on Keycloak as `ada` /
 `ada` or `grace` / `grace` (admin console http://localhost:8180, admin/admin).
 

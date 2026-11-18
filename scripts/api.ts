@@ -34,7 +34,7 @@ if (!check) {
   run(API, ["generate"]);
 } else {
   let problem: string | undefined;
-  const scratch = mkdtempSync(join(tmpdir(), "booking-api-"));
+  const scratch = mkdtempSync(join(tmpdir(), "platform-booking-api-"));
   // Next to src/generated, so the generated import of ../fetcher is the same.
   const generated = `src/.check-${process.pid}`;
   try {

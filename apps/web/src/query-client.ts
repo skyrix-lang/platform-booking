@@ -1,5 +1,5 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
-import { ApiError, getGetMeQueryKey } from "@booking/api";
+import { ApiError, getGetMeQueryKey } from "@platform-booking/api";
 
 /**
  * One client for the app. A 401 anywhere means the session ended: forget the

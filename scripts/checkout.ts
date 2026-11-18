@@ -42,7 +42,7 @@ export function e2ePort(): number {
 export function databaseNames() {
   const suffix = isWorktree() ? `_wt${checkoutSlot()}` : "";
   return {
-    dev: `booking${suffix}`,
-    e2e: `booking_${checkoutSlot()}_e2e`,
+    dev: `platform_booking${suffix}`,
+    e2e: `platform_booking_${checkoutSlot()}_e2e`,
   };
 }

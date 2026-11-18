@@ -1,6 +1,6 @@
 import { lt, sql } from "drizzle-orm";
 import { getDb } from "./db";
-import { rateLimits } from "@booking/db";
+import { rateLimits } from "@platform-booking/db";
 
 export interface RateLimit {
   /** How many hits a key may have in one window. */

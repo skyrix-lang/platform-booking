@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
+import { seedPlatforms } from "@platform-booking/db/seed";
 import { bffDevPort, databaseNames, devPort, isWorktree } from "./checkout";
 import { loadEnv } from "./env";
 
@@ -43,7 +44,7 @@ function createEnvFile() {
     content = setVariable(
       content,
       "DATABASE_URL",
-      `postgres://booking:booking@localhost:5432/${dev}`,
+      `postgres://platform_booking:platform_booking@localhost:5432/${dev}`,
     );
   }
   writeFileSync(".env", content);
@@ -83,14 +84,16 @@ async function main() {
   await createDatabase(url);
   const db = drizzle(url.href);
   await migrate(db, { migrationsFolder: "packages/db/drizzle" });
+  const seeded = await seedPlatforms(db);
   await db.$client.end();
   console.log(`• Migrations applied to ${url.pathname.slice(1)}.`);
+  if (seeded) console.log(`• Added the ${seeded} default platforms.`);
 
   console.log(`
 Ready. Next:
   yarn dev                 ${process.env.PUBLIC_URL}
-  sign in as ada / ada     (Keycloak, http://localhost:8180)
-  yarn db:seed <email>     demo bookings for that user`);
+  yarn db:import-sqlite <file>
+                           optional: the previous version's data`);
 }
 
 main().catch((error) => {

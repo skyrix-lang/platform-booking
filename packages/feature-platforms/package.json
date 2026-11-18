@@ -1,5 +1,5 @@
 {
-  "name": "@booking/feature-bookings",
+  "name": "@platform-booking/feature-platforms",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,12 +11,11 @@
     "check": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@booking/api": "workspace:^",
-    "@booking/core": "workspace:^",
-    "@booking/ui": "workspace:^",
     "@hookform/resolvers": "^7.0.2",
+    "@platform-booking/api": "workspace:^",
+    "@platform-booking/core": "workspace:^",
+    "@platform-booking/ui": "workspace:^",
     "@tanstack/react-query": "^5.105.3",
-    "@tanstack/react-router": "^1.170.46",
     "lucide-react": "^1.67.0",
     "react": "^19.3.1",
     "react-hook-form": "^7.91.0",

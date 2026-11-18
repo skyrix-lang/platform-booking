@@ -10,10 +10,10 @@ product questions, write a spec in `docs/specs/` first and get the open question
 answered.
 
 Work from the database up, and include only the layers the feature needs. The
-bookings feature shows every layer: `packages/db/src/schema.ts`,
-`packages/core/src/booking-schema.ts`, `apps/bff/src/bookings.ts`,
-`apps/bff/src/routes/api.ts`, `packages/feature-bookings/` and
-`apps/web/src/routes/bookings.tsx`.
+platforms feature shows every layer: `packages/db/src/schema.ts`,
+`packages/core/src/booking-schema.ts`, `apps/bff/src/bookings.ts` and
+`apps/bff/src/platforms.ts`, `apps/bff/src/routes/api.ts`,
+`packages/feature-platforms/` and `apps/web/src/routes/`.
 
 ## 1. Database (`packages/db`)
 
@@ -34,17 +34,20 @@ them next to the file with Vitest.
 
 ## 3. Data layer (`apps/bff/src/<entity>.ts`)
 
-Small async functions using `getDb()`, no HTTP code. For per-user data, give
-the table a `user_id` and make each function take the user's id and filter by
-it, as `apps/bff/src/bookings.ts` does: another user's row then behaves as if
-it doesn't exist. Return only public columns, not the owner.
+Small async functions using `getDb()`, no HTTP code. The data here is shared
+(no sign-in, by decision). If a feature ever needs per-user data, give the
+table a `user_id` and make each function take the user's id and filter by it:
+another user's row then behaves as if it doesn't exist. Return only public
+columns, not the owner.
 
 ## 4. API routes (`apps/bff/src/routes/api.ts`)
 
 Declare each route with `createRoute` (method, path, `operationId`, request
-schemas, every response status), and register it on `userApi`, which checks
-the session (401). Bad input gets 400 from the default hook; an unknown or
-someone else's record is 404. Limit anything that sends email or costs money
+schemas, every response status), and register it on `publicApi`: the site is
+open. A route that must be signed in goes on a router that checks the session
+(401), as the comment at the top of the file says. A change to shared data
+calls `broadcast()` (`apps/bff/src/live-updates.ts`) so open pages refetch.
+Bad input gets 400 from the default hook; an unknown record is 404. Limit anything that sends email or costs money
 with `hit()` from `apps/bff/src/rate-limit.ts`.
 
 ## 5. Client (`packages/api`)
@@ -55,15 +58,15 @@ the result; `yarn verify` fails if it's stale. Never write API types by hand.
 
 ## 6. UI (`packages/feature-<name>`)
 
-- A new feature package gets its own `package.json` (deps on `@booking/core`,
-  `@booking/api`, `@booking/ui` only), a short `AGENTS.md`, and an entry in
-  `scripts/check-boundaries.ts` if its name doesn't match `@booking/feature-*`.
+- A new feature package gets its own `package.json` (deps on `@platform-booking/core`,
+  `@platform-booking/api`, `@platform-booking/ui` only), a short `AGENTS.md`, and an entry in
+  `scripts/check-boundaries.ts` if its name doesn't match `@platform-booking/feature-*`.
 - Read with the generated `useX` hooks; pass `throwOnError: throwUnexpected()`
   so unexpected errors reach the route's error page.
 - Mutate with the generated mutation hooks, then invalidate the list's query
   key (`getXQueryKey()`).
 - Forms: React Hook Form with `zodResolver(<schema from core>)` and the
-  `Field`, `FieldLabel`, `FieldError`, `Input` components from `@booking/ui`.
+  `Field`, `FieldLabel`, `FieldError`, `Input` components from `@platform-booking/ui`.
 - URL state, such as filters, lives in the route's search params, not React
   state. Client state that isn't server data goes in Zustand (ask first: it
   isn't installed yet).
@@ -72,7 +75,7 @@ the result; `yarn verify` fails if it's stale. Never write API types by hand.
 ## 7. Tests
 
 - Component tests next to the component (`*.test.tsx`, Vitest + Testing
-  Library), with handlers from `@booking/api/mocks` fixed to known data.
+  Library), with handlers from `@platform-booking/api/mocks` fixed to known data.
 - API cases in `e2e/api.spec.ts`, including invalid input and unknown records.
 - Browser tests for the user flow, the pending state and the failure path.
   They also run axe: fix any violation.

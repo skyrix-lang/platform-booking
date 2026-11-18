@@ -1,0 +1,93 @@
+/*
+ * Platform Booking's brand: the previous version's palette (indigo primary,
+ * grey surfaces, green/amber/red states, blue for Kubernetes, purple for
+ * nightly platforms), in light and dark. Dark is the default: apps/web sets
+ * `.dark` on <html> before the page renders (public/theme.js), unless the
+ * visitor chose light.
+ *
+ * Components only use these tokens (packages/ui/src/styles.css). A few of the
+ * previous version's lightest greys were darkened to reach WCAG 2.2 AA
+ * contrast (4.5:1), which the e2e axe checks require.
+ */
+:root {
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 0.25rem;
+  color-scheme: light;
+
+  --background: #f9fafb;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --muted: #f3f4f6;
+  --muted-foreground: #4b5563;
+  --border: #e5e7eb;
+  --input: #d1d5db;
+  --ring: #6366f1;
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e0e7ff;
+  --primary-soft-foreground: #4338ca;
+
+  --secondary: #f9fafb;
+  --secondary-foreground: #374151;
+
+  --success: #10b981;
+  --success-soft: #d1fae5;
+  --success-soft-foreground: #047857;
+  --warning: #f59e0b;
+  --warning-soft: #fef3c7;
+  --warning-soft-foreground: #b45309;
+  --destructive: #dc2626;
+  --destructive-soft: #fee2e2;
+  --destructive-soft-foreground: #b91c1c;
+  --info: #3b82f6;
+  --info-soft: #dbeafe;
+  --info-soft-foreground: #1d4ed8;
+  --accent-soft: #f3e8ff;
+  --accent-soft-foreground: #7e22ce;
+  --overlay: rgb(3 7 18 / 0.5);
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --background: #030712;
+  --foreground: #f3f4f6;
+  --card: #111827;
+  --card-foreground: #f3f4f6;
+  --muted: #1f2937;
+  --muted-foreground: #9ca3af;
+  --border: #1f2937;
+  --input: #374151;
+  --ring: #6366f1;
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-foreground: #ffffff;
+  --primary-soft: rgb(99 102 241 / 0.15);
+  --primary-soft-foreground: #a5b4fc;
+
+  --secondary: #1f2937;
+  --secondary-foreground: #e5e7eb;
+
+  --success: #10b981;
+  --success-soft: rgb(16 185 129 / 0.15);
+  --success-soft-foreground: #34d399;
+  --warning: #f59e0b;
+  --warning-soft: rgb(245 158 11 / 0.15);
+  --warning-soft-foreground: #fbbf24;
+  --destructive: #dc2626;
+  --destructive-soft: rgb(239 68 68 / 0.15);
+  --destructive-soft-foreground: #f87171;
+  --info: #60a5fa;
+  --info-soft: rgb(59 130 246 / 0.15);
+  --info-soft-foreground: #60a5fa;
+  --accent-soft: rgb(168 85 247 / 0.15);
+  --accent-soft-foreground: #c084fc;
+  --overlay: rgb(3 7 18 / 0.8);
+}

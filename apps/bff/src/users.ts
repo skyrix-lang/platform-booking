@@ -1,5 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { users } from "@booking/db";
+import { users } from "@platform-booking/db";
 import { getDb } from "./db";
 
 export interface Identity {

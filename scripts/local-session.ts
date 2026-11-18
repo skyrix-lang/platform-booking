@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { sessionTokenHash, userSessions, users } from "@booking/db";
+import { sessionTokenHash, userSessions, users } from "@platform-booking/db";
 
 // Signs a user in without the identity provider, for `yarn dev:session` and
 // the e2e tests: it writes the rows the BFF's callback would write. The user is

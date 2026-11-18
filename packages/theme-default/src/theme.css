@@ -6,6 +6,7 @@
  */
 :root {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
   --radius: 0.5rem;
 
   --background: #f8fafc;
@@ -27,11 +28,19 @@
   --secondary: #ffffff;
   --secondary-foreground: #334155;
 
+  --success: #16a34a;
   --success-soft: #dcfce7;
   --success-soft-foreground: #15803d;
+  --warning: #d97706;
   --warning-soft: #fef3c7;
   --warning-soft-foreground: #b45309;
   --destructive: #dc2626;
   --destructive-soft: #fee2e2;
   --destructive-soft-foreground: #b91c1c;
+  --info: #2563eb;
+  --info-soft: #dbeafe;
+  --info-soft-foreground: #1d4ed8;
+  --accent-soft: #f3e8ff;
+  --accent-soft-foreground: #7e22ce;
+  --overlay: rgb(15 23 42 / 0.5);
 }

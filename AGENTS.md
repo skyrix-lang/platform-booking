@@ -1,22 +1,25 @@
 # Project guide
 
-A full-stack starter for new projects, organized as **versioned packages plus a
-thin app per customer**: a client-only React 19 SPA (Vite,
+Platform Booking: the team books its test platforms by trigram, with no
+sign-in, and sees changes live. Built from the project-starter, organized as
+**versioned packages plus a thin app**: a client-only React 19 SPA (Vite,
 TanStack Router and Query, shadcn/ui on Base UI, Tailwind v4, React Hook Form,
-Zod 4) and a small Hono backend-for-frontend (BFF) that owns sign-in (OpenID
-Connect), sessions, the JSON API and Postgres (Drizzle). One Docker image.
-See `README.md` for setup. The bookings feature is the reference
-implementation: copy its patterns.
+Zod 4) and a small Hono backend-for-frontend (BFF) that owns the JSON API, the
+live updates (server-sent events) and Postgres (Drizzle), with optional OpenID
+Connect sign-in. One Docker image. See `README.md` for setup and deploy. The
+platforms feature (`packages/feature-platforms`, `apps/bff/src/bookings.ts`)
+is the pattern to follow. The data is shared and open, by decision
+(`docs/decisions.md`).
 
 ```
-apps/web                 thin customer app: routes, theme, page overrides
-apps/bff                 Hono server: OIDC, sessions, /api, security headers, serves the SPA
+apps/web                 thin app: routes, theme, layout, page overrides
+apps/bff                 Hono server: /api, live updates, optional OIDC, security headers, serves the SPA
 packages/core            Zod schemas and types shared by web and BFF
 packages/db              Drizzle schema, migrations (server only)
 packages/api             generated client, hooks and MSW mocks (never edit by hand)
 packages/ui              UI kit on theme tokens
-packages/theme-default   the brand: one CSS-variable file
-packages/feature-*       feature screens (bookings)
+packages/theme-*         brands, one CSS-variable file each (theme-platform-booking is used)
+packages/feature-*       feature screens (platforms)
 ```
 
 Each package has a short `AGENTS.md` with its own rules: read it before
@@ -34,8 +37,8 @@ import which.
 3. **Build in small steps** with the workflow that fits, from
    `.claude/skills/<name>/SKILL.md` (plain Markdown, for any agent): `new-feature`,
    `new-page`, `seo-check`, `run-app`. Run `yarn verify` after each step.
-4. **See it work.** Tests prove it; also check the running app (`run-app`): sign
-   in with `yarn dev:session`, load the page, read the console and server output.
+4. **See it work.** Tests prove it; also check the running app (`run-app`): load
+   the page, read the console and server output.
 5. **Done means:** `yarn verify` and `yarn test` pass; new behaviour has tests
    that fail when the code is broken (break it once to check); README,
    `.env.example` and `docs/decisions.md` are updated where needed; and the
@@ -60,8 +63,9 @@ databases.
 - `yarn test e2e/<file>.spec.ts` runs one file, `yarn test:unit` the Vitest
   suites, `yarn test:watch` watches them.
 - `yarn api:generate` after changing an API route. `yarn setup`, `yarn dev`,
-  `yarn db:generate`, `yarn db:migrate`, `yarn db:seed <email>`,
-  `yarn dev:session` (sign in locally).
+  `yarn db:generate`, `yarn db:migrate`, `yarn db:seed` (default platforms),
+  `yarn db:import-sqlite <file>` (the previous version's data, once),
+  `yarn dev:session` (sign in locally, only when testing sign-in).
 - `yarn sync-from-starter` (in a project made from the starter) merges in
   the starter's changes since `.starter.json`; Renovate updates versions. Run
   it only when asked, and see `docs/starter-sync.md`.
@@ -74,12 +78,12 @@ databases.
 - Everything renders in the browser; there is no server rendering. Routes are
   TanStack Router file routes; links and search params are type-checked.
 - Read and write server data only through the generated hooks in
-  `@booking/api`. Pass `throwOnError: throwUnexpected(...)` so unexpected errors
+  `@platform-booking/api`. Pass `throwOnError: throwUnexpected(...)` so unexpected errors
   reach the route's error page; invalidate query keys after a mutation.
 - URL state (filters, tabs) lives in validated search params. Client-only state
   goes in Zustand (not installed yet: ask when the first feature needs it).
-- Forms: React Hook Form + `zodResolver` with the schema from `@booking/core`,
-  and the `Field` components from `@booking/ui`.
+- Forms: React Hook Form + `zodResolver` with the schema from `@platform-booking/core`,
+  and the `Field` components from `@platform-booking/ui`.
 - Style with theme tokens only. A link styled as a button uses
   `buttonVariants()`: never put a `<button>` inside a link.
 - Accessibility is a requirement (WCAG 2.2 AA, European Accessibility Act):
@@ -91,17 +95,21 @@ databases.
 - Every page is **public** (should rank) or **app** (a working screen). See the
   `new-page` skill. Crawlers first read `apps/web/index.html`, whose metadata
   describes the home page; public pages are listed in `PUBLIC_PATHS`.
-- App pages set `usePageMeta({ title, noindex: true })` and call `requireUser`
-  in `beforeLoad`.
+- App pages set `usePageMeta({ title, noindex: true })`. They don't ask for a
+  sign-in: the site is open. A page that must be signed in would add a
+  `beforeLoad` check of `/api/me`, redirecting to `/sign-in`.
 
 ## BFF and data (`apps/bff`, `packages/db`)
 
 - Every API route is declared with `createRoute` and Zod schemas, so it is
   validated and appears in `/api/openapi.json`. Bad input is 400, someone else's
   or a missing record is 404. Run `yarn api:generate` after a change.
-- Routes on `userApi` check the session (401). A route outside it is public: say
-  why in a comment. Data is per user: pass `c.var.user.id` to every data
-  function, which filters by it, as `apps/bff/src/bookings.ts` does.
+- Every route is public and the data is shared, by decision. A route that must
+  be signed in goes on its own router that checks the session (401), as the
+  comment at the top of `apps/bff/src/routes/api.ts` explains, and its data
+  functions take the user's id and filter by it.
+- A change to shared data calls `broadcast()` (`apps/bff/src/live-updates.ts`)
+  so every open page refetches.
 - Log with `log` from `apps/bff/src/log.ts`, never `console`: one line per
   event, with the request's id added for you. Never log a secret, a token, a
   cookie or a query string.
@@ -119,8 +127,10 @@ databases.
 
 ## Security
 
-Sign-in is OpenID Connect, authorization code + PKCE, with the BFF as a
-confidential client: tokens and the client secret never reach the browser,
+The site is open: anyone who reaches it can book, edit and delete. Sign-in is
+optional, on only when `OIDC_*` and `SESSION_SECRET` are set. When on, it is
+OpenID Connect, authorization code + PKCE, with the BFF as a confidential
+client: tokens and the client secret never reach the browser,
 which holds only an HttpOnly session cookie (`apps/bff/src/session.ts`). The
 CSRF check refuses cross-site form posts; JSON from other origins fails CORS.
 Third-party scripts, images or APIs need their origins added to the CSP in
@@ -130,13 +140,12 @@ Third-party scripts, images or APIs need their origins added to the CSP in
 
 - Pure logic and schemas: Vitest, next to the file (`*.test.ts`).
 - Components: Vitest + Testing Library in jsdom, with MSW handlers from
-  `@booking/api/mocks`; unhandled requests fail the test.
+  `@platform-booking/api/mocks`; unhandled requests fail the test.
 - New behaviour gets a Playwright test in `e2e/`. Import `test` and `expect`
   from `e2e/support.ts`, so console errors and axe violations fail the test.
 - Tests run in parallel on one database. Tests that change data create their own
-  rows through a helper with a unique value, and never change seed data. Sign in
-  as a new user with `signInAsNewUser`; `auth.spec.ts` covers the real Keycloak
-  flow.
+  platform with `createPlatform` (a unique `e2e-…` id) and book it, and never
+  change the default platforms. `auth.spec.ts` covers the real Keycloak flow.
 - Prefer role-based locators, with `data-testid` for repeated cards.
 - Never add test-only routes or code to the app. Trigger failures from the test,
   with `page.route` or direct database access.

@@ -5,13 +5,13 @@
 # For development and tests only: production uses your own identity provider.
 set -e
 
-docker start booking-keycloak >/dev/null 2>&1 || docker run -d --name booking-keycloak \
+docker start platform-booking-keycloak >/dev/null 2>&1 || docker run -d --name platform-booking-keycloak \
   -p 8180:8080 \
   -e KC_BOOTSTRAP_ADMIN_USERNAME=admin \
   -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin \
   -v "$(pwd)/docker/keycloak:/opt/keycloak/data/import:ro" \
   quay.io/keycloak/keycloak:26.8 start-dev --import-realm >/dev/null
 
-until curl -sf http://localhost:8180/realms/booking/.well-known/openid-configuration >/dev/null; do
+until curl -sf http://localhost:8180/realms/platform-booking/.well-known/openid-configuration >/dev/null; do
   sleep 1
 done

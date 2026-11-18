@@ -1,5 +1,5 @@
 # One image per customer app. The same image runs anywhere: everything it needs
-# to know (PUBLIC_URL, DATABASE_URL, OIDC_*) is read from the environment when
+# to know (PUBLIC_URL, DATABASE_URL, optional OIDC_*) is read from the environment when
 # the container starts, never baked in at build time.
 
 # One base for every stage, pinned by digest so a build is repeatable: the tag
@@ -28,10 +28,12 @@ COPY . .
 FROM deps AS build
 RUN yarn build
 
-# migration stage: applies packages/db/drizzle to DATABASE_URL, then exits.
-# Run it as a deploy step before the new version starts.
+# migration stage: applies packages/db/drizzle to DATABASE_URL, adds the
+# default platforms to an empty database, then exits. Run it as a deploy step
+# before the new version starts. It also runs `yarn db:import-sqlite`, once,
+# to bring in the previous version's data.
 FROM deps AS migrate
-CMD ["yarn", "db:migrate"]
+CMD ["sh", "-c", "yarn db:migrate && yarn db:seed"]
 
 # runtime stage: Node, one JavaScript file and static assets. No node_modules,
 # no package manager, no source, and an unprivileged user.

@@ -1,13 +1,18 @@
-export const BOOKING_STATUSES = ["pending", "confirmed", "cancelled"] as const;
+import type { z } from "zod";
+import type {
+  bookingHistoryEntrySchema,
+  bookingSchema,
+  platformSchema,
+} from "./booking-schema";
 
-export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+/** Why a booking left the active list. */
+export const HISTORY_REASONS = ["released", "expired"] as const;
 
-export interface Booking {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  duration: number;
-  status: BookingStatus;
-}
+export type HistoryReason = (typeof HISTORY_REASONS)[number];
+
+/** How far back the history goes, in days. */
+export const HISTORY_DAYS = 21;
+
+export type Platform = z.infer<typeof platformSchema>;
+export type Booking = z.infer<typeof bookingSchema>;
+export type BookingHistoryEntry = z.infer<typeof bookingHistoryEntrySchema>;

@@ -1,6 +1,5 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { seedBookings } from "@booking/db/seed";
 import { loadEnv } from "./env";
 import {
   createLocalSession,
@@ -8,7 +7,7 @@ import {
   storageState,
 } from "./local-session";
 
-// yarn dev:session [email] [--seed]: signs a user in without Keycloak, for an
+// yarn dev:session [email]: signs a user in without Keycloak, for an
 // agent or a person checking the running dev server, and prints the cookie.
 // Local databases and http:// only.
 
@@ -16,7 +15,6 @@ const STATE_FILE = "e2e/.auth/dev-session.json";
 
 async function main() {
   const args = process.argv.slice(2);
-  const seed = args.includes("--seed");
   const email = (
     args.find((arg) => !arg.startsWith("--")) ?? "agent@example.test"
   )
@@ -35,8 +33,7 @@ async function main() {
 
   const db = drizzle(url.href);
   try {
-    const { userId, token, expiresAt } = await createLocalSession(db, email);
-    if (seed) await seedBookings(db, userId);
+    const { token, expiresAt } = await createLocalSession(db, email);
 
     mkdirSync("e2e/.auth", { recursive: true });
     writeFileSync(
@@ -44,8 +41,8 @@ async function main() {
       JSON.stringify(storageState(site, token, expiresAt)),
     );
 
-    console.log(`Signed in as ${email}${seed ? ", with the demo bookings" : ""}.
-  curl:        curl -H 'Cookie: ${LOCAL_SESSION_COOKIE}=${token}' ${site.origin}/api/bookings
+    console.log(`Signed in as ${email}.
+  curl:        curl -H 'Cookie: ${LOCAL_SESSION_COOKIE}=${token}' ${site.origin}/api/me
   Playwright:  storageState: "${STATE_FILE}"
   browser:     set the cookie ${LOCAL_SESSION_COOKIE} on ${site.hostname}`);
   } finally {

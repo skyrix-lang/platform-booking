@@ -36,7 +36,8 @@ micro-frontends unless customers must ship pages without a rebuild.
 
 ## OIDC confidential client in the BFF
 
-The BFF signs users in with OpenID Connect (authorization code + PKCE, state and
+Optional here: see "Open access, shared data". When `OIDC_*` is set, the BFF
+signs users in with OpenID Connect (authorization code + PKCE, state and
 nonce) as a confidential client, using `openid-client`. Users are identified by
 issuer and subject; sessions are rows in `user_sessions` holding a hash of the
 cookie's token, so deleting a row signs out at once. The browser only holds an
@@ -52,15 +53,74 @@ must never be in the bundle.
 user disabled there stays signed in until expiry. Add a shorter or sliding
 expiry, a refresh-token check, or back-channel logout when a customer needs it.
 
-## Data belongs to a user
+## Open access, shared data
 
-Every row of per-user data has a `user_id`. Every BFF data function takes the
-signed-in user's id and filters by it, and another user's row behaves as if it
-doesn't exist (404). The owner column isn't returned.
-**Why:** the check lives in one place per query, not in each caller, and a missing
-filter shows up in review as an unused argument.
-**Revisit when:** something needs sharing or roles: add them explicitly, don't
-loosen the filter.
+Nobody signs in, and every platform and booking is shared: anyone who reaches
+the site can book, join, change, release and edit platforms, identified only by
+the trigram they type, as in the previous version. The API routes are public
+and data functions take no user. Sign-in stays in the code, off unless
+`OIDC_*` and `SESSION_SECRET` are set, and `/auth/*` doesn't exist without
+them.
+**Why:** the site replaces one that worked this way for a small team on an
+internal network, and the request was the same site; asking a team to sign in
+to book a test platform is a change of product, not of stack.
+**Revisit when:** it's reachable from outside that network, or someone needs to
+know who really changed a booking: turn sign-in on and put the mutating routes
+behind a session check (the comment at the top of
+`apps/bff/src/routes/api.ts`), then record the trigram from the user.
+
+## Live updates over server-sent events
+
+Every change to platforms or bookings calls `broadcast()`, and
+`GET /api/events` streams `bookings-updated` or `platforms-updated` to every
+open page, which refetches those queries (`useLiveUpdates()` in
+`packages/feature-platforms`). Each server keeps its listeners in memory; a
+reconnecting page refetches everything. The stream sends a comment every 25
+seconds so proxies keep it open, and closes on shutdown.
+**Why:** the previous version updated live, and several people book the same
+platforms at once. SSE is one HTTP response the browser reconnects by itself:
+no WebSocket server, no dependency, and the CSP's `default-src 'self'` covers
+it.
+**Revisit when:** the app runs as more than one instance: broadcast through
+Postgres `LISTEN`/`NOTIFY` so every instance hears every change.
+
+## Bookings end with the day, in the server's time zone
+
+A booking runs from the day it's made to its end date, inclusive. Once that
+day has passed it moves to the history as expired, inside the same transaction
+as the next read or write of bookings (`expireBookings`), not by a timer.
+"Today" is the server's date: set `TZ` on the container. A nightly platform
+can be booked until today only. The history shows the last 21 days.
+**Why:** the same rules as the previous version, which people know. Expiring
+on read needs no scheduler, and nobody can see a booking that should have
+ended.
+
+## The previous version's data is imported once
+
+`yarn db:import-sqlite <file>` copies the old SQLite file's platforms, active
+bookings and history into a freshly migrated database, in one transaction,
+reading the file with `node:sqlite` (no dependency). It refuses to run when
+bookings or history already exist, so it can't duplicate rows; rows it can't
+trust are skipped and listed. The mapping is `scripts/legacy-import.ts`, with
+unit tests.
+**Why:** a new image must replace the old container without losing who has
+which platform. The old schema is small and fixed, so a one-off script is
+simpler than keeping SQLite support in the app.
+**Revisit when:** never, once production has moved: then the script and
+`legacy-import.ts` can be deleted.
+
+## Theme kept from the previous version, dark by default
+
+`packages/theme-platform-booking` holds the old palette as the starter's
+tokens, with a light mode switched by `.dark` on `<html>`. The choice is kept
+in `localStorage` and applied before React renders by `public/theme.js`, a
+file because the CSP forbids inline scripts. Some greys were darkened from the
+old values to reach WCAG 2.2 AA contrast. The fonts (Inter, JetBrains Mono)
+are named but not downloaded.
+**Why:** the request was the same look. Loading Google Fonts would need a CSP
+exception and sends every visitor's address to Google.
+**Revisit when:** the exact typeface matters: self-host the font files in
+`apps/web/public`, which the CSP already allows.
 
 ## TanStack Query through a generated client
 
@@ -132,7 +192,7 @@ package in `dependenciesMeta`, never globally.
 
 ## Each checkout is isolated
 
-The main checkout uses ports 3000 (Vite) and 3001 (BFF) and the `booking`
+The main checkout uses ports 3000 (Vite) and 3001 (BFF) and the `platform_booking`
 database. A git worktree gets its own dev ports, dev database and e2e port and
 database (`scripts/checkout.ts`, `yarn setup`). Postgres and Keycloak are shared.
 **Why:** several agents can work in parallel worktrees without one's migrations or
@@ -160,14 +220,20 @@ no dependency.
 **Revisit when:** traces or metrics are needed, or a second service must share
 a request's id: add OpenTelemetry then, and keep `log` as the one entry point.
 
-## Compose file for trying the image, not for production
+## Compose files: one to try the image, one to run it
 
-`docker/compose.yaml` runs the image with Postgres, the migration stage and a
-development Keycloak, in deploy order. Keycloak is reached as
-`keycloak.localhost` on the same port by the browser and by the app, because
-the issuer must be one address for both.
-**Why:** the image is what ships, so there must be a one-command way to run it
-as it runs in production. Its secrets are public: it is not a deployment.
+`docker/compose.yaml` runs the image with Postgres and the migration stage, in
+deploy order, with public passwords: for trying the image locally.
+`docker/compose.production.yaml` is the deployment that replaces the previous
+single container: Postgres in a volume, the `migrate` service (migrations,
+then the default platforms when the table is empty; also the one-off import),
+then the app on port 80 behind the existing HTTPS proxy. It takes
+`PUBLIC_URL` and `POSTGRES_PASSWORD` from the environment and refuses to start
+without them.
+**Why:** the previous version was deployed by hand as one container; keeping
+one command on one machine is the smallest change. `PUBLIC_URL` must stay
+https: the security headers (HSTS, `__Host-` cookies) assume it.
+**Revisit when:** it moves to an orchestrator or a managed database.
 
 ## Projects follow the starter
 

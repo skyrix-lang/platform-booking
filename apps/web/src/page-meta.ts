@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { site } from "@booking/core";
+import { site } from "@platform-booking/core";
 
 /**
  * Sets the document title, and asks search engines not to index app screens.
