@@ -15,8 +15,8 @@
   "dependencies": {
     "@platform-booking/api": "workspace:^",
     "@platform-booking/core": "workspace:^",
-    "@platform-booking/feature-bookings": "workspace:^",
-    "@platform-booking/theme-default": "workspace:^",
+    "@platform-booking/feature-platforms": "workspace:^",
+    "@platform-booking/theme-platform-booking": "workspace:^",
     "@platform-booking/ui": "workspace:^",
     "@tanstack/react-query": "^5.105.3",
     "@tanstack/react-router": "^1.170.46",

@@ -293,122 +293,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@booking/api@workspace:^, @booking/api@workspace:packages/api":
-  version: 0.0.0-use.local
-  resolution: "@booking/api@workspace:packages/api"
-  dependencies:
-    "@faker-js/faker": "npm:^10.6.0"
-    "@tanstack/react-query": "npm:^5.105.3"
-    msw: "npm:^3.0.3"
-    orval: "npm:^8.46.0"
-  languageName: unknown
-  linkType: soft
-
-"@booking/bff@workspace:apps/bff":
-  version: 0.0.0-use.local
-  resolution: "@booking/bff@workspace:apps/bff"
-  dependencies:
-    "@booking/core": "workspace:^"
-    "@booking/db": "workspace:^"
-    "@hono/node-server": "npm:^2.1.6"
-    "@hono/zod-openapi": "npm:^1.6.3"
-    "@types/nodemailer": "npm:^8.0.2"
-    drizzle-orm: "npm:^0.45.4"
-    hono: "npm:^4.13.16"
-    nodemailer: "npm:^10.5.0"
-    openid-client: "npm:^6.8.9"
-    tsx: "npm:^4.23.15"
-    vite: "npm:^8.3.5"
-    zod: "npm:^4.6.7"
-  languageName: unknown
-  linkType: soft
-
-"@booking/core@workspace:^, @booking/core@workspace:packages/core":
-  version: 0.0.0-use.local
-  resolution: "@booking/core@workspace:packages/core"
-  dependencies:
-    zod: "npm:^4.6.7"
-  languageName: unknown
-  linkType: soft
-
-"@booking/db@workspace:^, @booking/db@workspace:packages/db":
-  version: 0.0.0-use.local
-  resolution: "@booking/db@workspace:packages/db"
-  dependencies:
-    "@booking/core": "workspace:^"
-    "@types/pg": "npm:^8.23.1"
-    drizzle-kit: "npm:^0.31.11"
-    drizzle-orm: "npm:^0.45.4"
-    pg: "npm:^8.23.1"
-  languageName: unknown
-  linkType: soft
-
-"@booking/feature-bookings@workspace:^, @booking/feature-bookings@workspace:packages/feature-bookings":
-  version: 0.0.0-use.local
-  resolution: "@booking/feature-bookings@workspace:packages/feature-bookings"
-  dependencies:
-    "@booking/api": "workspace:^"
-    "@booking/core": "workspace:^"
-    "@booking/ui": "workspace:^"
-    "@hookform/resolvers": "npm:^7.0.2"
-    "@tanstack/react-query": "npm:^5.105.3"
-    "@tanstack/react-router": "npm:^1.170.46"
-    "@types/react": "npm:^19.3.0"
-    lucide-react: "npm:^1.67.0"
-    msw: "npm:^3.0.3"
-    react: "npm:^19.3.1"
-    react-hook-form: "npm:^7.91.0"
-    zod: "npm:^4.6.7"
-  languageName: unknown
-  linkType: soft
-
-"@booking/theme-default@workspace:^, @booking/theme-default@workspace:packages/theme-default":
-  version: 0.0.0-use.local
-  resolution: "@booking/theme-default@workspace:packages/theme-default"
-  languageName: unknown
-  linkType: soft
-
-"@booking/ui@workspace:^, @booking/ui@workspace:packages/ui":
-  version: 0.0.0-use.local
-  resolution: "@booking/ui@workspace:packages/ui"
-  dependencies:
-    "@base-ui/react": "npm:^1.9.0"
-    "@types/react": "npm:^19.3.0"
-    "@types/react-dom": "npm:^19.3.0"
-    class-variance-authority: "npm:^0.7.1"
-    clsx: "npm:^2.1.1"
-    lucide-react: "npm:^1.67.0"
-    react: "npm:^19.3.1"
-    react-dom: "npm:^19.3.1"
-    tailwind-merge: "npm:^3.7.0"
-  languageName: unknown
-  linkType: soft
-
-"@booking/web@workspace:apps/web":
-  version: 0.0.0-use.local
-  resolution: "@booking/web@workspace:apps/web"
-  dependencies:
-    "@booking/api": "workspace:^"
-    "@booking/core": "workspace:^"
-    "@booking/feature-bookings": "workspace:^"
-    "@booking/theme-default": "workspace:^"
-    "@booking/ui": "workspace:^"
-    "@tailwindcss/vite": "npm:^4.3.4"
-    "@tanstack/react-query": "npm:^5.105.3"
-    "@tanstack/react-router": "npm:^1.170.46"
-    "@tanstack/router-plugin": "npm:^1.168.48"
-    "@types/react": "npm:^19.3.0"
-    "@types/react-dom": "npm:^19.3.0"
-    "@vitejs/plugin-react": "npm:^6.2.1"
-    lucide-react: "npm:^1.67.0"
-    react: "npm:^19.3.1"
-    react-dom: "npm:^19.3.1"
-    tailwindcss: "npm:^4.3.4"
-    vite: "npm:^8.3.5"
-    zod: "npm:^4.6.7"
-  languageName: unknown
-  linkType: soft
-
 "@bramus/specificity@npm:^2.4.2":
   version: 2.4.3
   resolution: "@bramus/specificity@npm:2.4.3"
@@ -1893,6 +1777,127 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@platform-booking/api@workspace:^, @platform-booking/api@workspace:packages/api":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/api@workspace:packages/api"
+  dependencies:
+    "@faker-js/faker": "npm:^10.6.0"
+    "@tanstack/react-query": "npm:^5.105.3"
+    msw: "npm:^3.0.3"
+    orval: "npm:^8.46.0"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/bff@workspace:apps/bff":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/bff@workspace:apps/bff"
+  dependencies:
+    "@hono/node-server": "npm:^2.1.6"
+    "@hono/zod-openapi": "npm:^1.6.3"
+    "@platform-booking/core": "workspace:^"
+    "@platform-booking/db": "workspace:^"
+    "@types/nodemailer": "npm:^8.0.2"
+    drizzle-orm: "npm:^0.45.4"
+    hono: "npm:^4.13.16"
+    nodemailer: "npm:^10.5.0"
+    openid-client: "npm:^6.8.9"
+    tsx: "npm:^4.23.15"
+    vite: "npm:^8.3.5"
+    zod: "npm:^4.6.7"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/core@workspace:^, @platform-booking/core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/core@workspace:packages/core"
+  dependencies:
+    zod: "npm:^4.6.7"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/db@workspace:^, @platform-booking/db@workspace:packages/db":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/db@workspace:packages/db"
+  dependencies:
+    "@platform-booking/core": "workspace:^"
+    "@types/pg": "npm:^8.23.1"
+    drizzle-kit: "npm:^0.31.11"
+    drizzle-orm: "npm:^0.45.4"
+    pg: "npm:^8.23.1"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/feature-platforms@workspace:^, @platform-booking/feature-platforms@workspace:packages/feature-platforms":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/feature-platforms@workspace:packages/feature-platforms"
+  dependencies:
+    "@hookform/resolvers": "npm:^7.0.2"
+    "@platform-booking/api": "workspace:^"
+    "@platform-booking/core": "workspace:^"
+    "@platform-booking/ui": "workspace:^"
+    "@tanstack/react-query": "npm:^5.105.3"
+    "@types/react": "npm:^19.3.0"
+    lucide-react: "npm:^1.67.0"
+    msw: "npm:^3.0.3"
+    react: "npm:^19.3.1"
+    react-hook-form: "npm:^7.91.0"
+    zod: "npm:^4.6.7"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/theme-default@workspace:packages/theme-default":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/theme-default@workspace:packages/theme-default"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/theme-platform-booking@workspace:^, @platform-booking/theme-platform-booking@workspace:packages/theme-platform-booking":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/theme-platform-booking@workspace:packages/theme-platform-booking"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/ui@workspace:^, @platform-booking/ui@workspace:packages/ui":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/ui@workspace:packages/ui"
+  dependencies:
+    "@base-ui/react": "npm:^1.9.0"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
+    class-variance-authority: "npm:^0.7.1"
+    clsx: "npm:^2.1.1"
+    lucide-react: "npm:^1.67.0"
+    react: "npm:^19.3.1"
+    react-dom: "npm:^19.3.1"
+    tailwind-merge: "npm:^3.7.0"
+  languageName: unknown
+  linkType: soft
+
+"@platform-booking/web@workspace:apps/web":
+  version: 0.0.0-use.local
+  resolution: "@platform-booking/web@workspace:apps/web"
+  dependencies:
+    "@platform-booking/api": "workspace:^"
+    "@platform-booking/core": "workspace:^"
+    "@platform-booking/feature-platforms": "workspace:^"
+    "@platform-booking/theme-platform-booking": "workspace:^"
+    "@platform-booking/ui": "workspace:^"
+    "@tailwindcss/vite": "npm:^4.3.4"
+    "@tanstack/react-query": "npm:^5.105.3"
+    "@tanstack/react-router": "npm:^1.170.46"
+    "@tanstack/router-plugin": "npm:^1.168.48"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
+    "@vitejs/plugin-react": "npm:^6.2.1"
+    lucide-react: "npm:^1.67.0"
+    react: "npm:^19.3.1"
+    react-dom: "npm:^19.3.1"
+    tailwindcss: "npm:^4.3.4"
+    vite: "npm:^8.3.5"
+    zod: "npm:^4.6.7"
+  languageName: unknown
+  linkType: soft
+
 "@playwright/test@npm:^1.64.1":
   version: 1.64.1
   resolution: "@playwright/test@npm:1.64.1"
@@ -2990,34 +2995,6 @@ __metadata:
   checksum: 10c0/b608addec6bd6e5d1c0cc7b6116002d589c6e666966503aca2aa7b2f61717ecaaeb0ac1a16c1374d61ee757de4f2f24017312a70781f5c4b127ffab54a2f7187
   languageName: node
   linkType: hard
-
-"booking-platform@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "booking-platform@workspace:."
-  dependencies:
-    "@axe-core/playwright": "npm:^4.14.0"
-    "@booking/api": "workspace:^"
-    "@booking/core": "workspace:^"
-    "@booking/db": "workspace:^"
-    "@playwright/test": "npm:^1.64.1"
-    "@testing-library/dom": "npm:^10.4.2"
-    "@testing-library/jest-dom": "npm:^7.0.1"
-    "@testing-library/react": "npm:^16.3.3"
-    "@testing-library/user-event": "npm:^14.6.8"
-    "@types/jsdom": "npm:^30"
-    "@types/node": "npm:^26.6.6"
-    "@types/pg": "npm:^8.23.1"
-    drizzle-orm: "npm:^0.45.4"
-    jsdom: "npm:^30.1.3"
-    oxfmt: "npm:^0.76.0"
-    oxlint: "npm:^1.91.0"
-    oxlint-tsgolint: "npm:^7.0.2005"
-    pg: "npm:^8.23.1"
-    tsx: "npm:^4.23.15"
-    typescript: "npm:^7.0.2"
-    vitest: "npm:^5.1.0"
-  languageName: unknown
-  linkType: soft
 
 "browserslist@npm:^4.24.0":
   version: 4.29.5
@@ -4757,6 +4734,34 @@ __metadata:
   checksum: 10c0/beb6ae02c43ae44e84883b90830196d9046b1726ead292adcf7f57945e0bb0d992d68563d87e03b484b6f3c9a5c6defda7523477f047d7f0e663f126cc01787f
   languageName: node
   linkType: hard
+
+"platform-booking@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "platform-booking@workspace:."
+  dependencies:
+    "@axe-core/playwright": "npm:^4.14.0"
+    "@platform-booking/api": "workspace:^"
+    "@platform-booking/core": "workspace:^"
+    "@platform-booking/db": "workspace:^"
+    "@playwright/test": "npm:^1.64.1"
+    "@testing-library/dom": "npm:^10.4.2"
+    "@testing-library/jest-dom": "npm:^7.0.1"
+    "@testing-library/react": "npm:^16.3.3"
+    "@testing-library/user-event": "npm:^14.6.8"
+    "@types/jsdom": "npm:^30"
+    "@types/node": "npm:^26.6.6"
+    "@types/pg": "npm:^8.23.1"
+    drizzle-orm: "npm:^0.45.4"
+    jsdom: "npm:^30.1.3"
+    oxfmt: "npm:^0.76.0"
+    oxlint: "npm:^1.91.0"
+    oxlint-tsgolint: "npm:^7.0.2005"
+    pg: "npm:^8.23.1"
+    tsx: "npm:^4.23.15"
+    typescript: "npm:^7.0.2"
+    vitest: "npm:^5.1.0"
+  languageName: unknown
+  linkType: soft
 
 "playwright-core@npm:1.64.1":
   version: 1.64.1

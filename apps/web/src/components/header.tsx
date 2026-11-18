@@ -1,73 +1,90 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { site } from "@platform-booking/core";
 import { cn } from "@platform-booking/ui";
-import { UserMenu } from "./user-menu";
+import { useTheme } from "../theme";
 
 const navLinks = [
-  { label: "Home", to: "/" },
+  { label: "Dashboard", to: "/" },
   { label: "Bookings", to: "/bookings" },
 ] as const;
 
 const linkClass = (block = false) =>
   cn(
-    block && "block",
-    "px-3 py-2 rounded-md text-sm font-medium transition-colors text-secondary-foreground hover:text-foreground hover:bg-muted",
+    block ? "block px-3 py-2" : "px-3 py-1.5",
+    "rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-secondary",
   );
 // Link sets aria-current="page" on the active one; this styles it.
-const activeClass = "bg-primary-soft text-primary-soft-foreground";
+const activeClass = "bg-muted text-foreground hover:bg-muted";
+
+const iconButton =
+  "cursor-pointer rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const themeLabel = theme === "dark" ? "Light mode" : "Dark mode";
 
   // Desktop and mobile navigation are switched with CSS breakpoints, never by
   // reading the screen size in render.
   return (
-    <header className="bg-card border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src="/logo.svg"
-              alt=""
-              width={32}
-              height={32}
-              className="h-8 w-8"
-            />
-            <span className="text-lg font-bold">{site.name}</span>
+    <header className="sticky top-0 z-40 border-b bg-card">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-14 items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 rounded-md">
+            <span
+              aria-hidden="true"
+              className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
+            >
+              P
+            </span>
+            <span className="text-sm font-semibold">{site.name}</span>
           </Link>
 
-          <nav
-            aria-label="Main"
-            className="hidden md:flex items-center gap-1 ml-auto mr-4"
-          >
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                activeOptions={{ exact: true, includeSearch: false }}
-                className={linkClass()}
-                activeProps={{ className: activeClass }}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="flex items-center gap-1">
+            <nav
+              aria-label="Main"
+              className="mr-3 hidden items-center gap-0.5 md:flex"
+            >
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  activeOptions={{ exact: true, includeSearch: false }}
+                  className={linkClass()}
+                  activeProps={{ className: activeClass }}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
 
-          <div className="flex items-center gap-2">
-            <UserMenu />
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={themeLabel}
+              title={themeLabel}
+              className={iconButton}
+            >
+              {theme === "dark" ? (
+                <Sun aria-hidden="true" className="h-4 w-4" />
+              ) : (
+                <Moon aria-hidden="true" className="h-4 w-4" />
+              )}
+            </button>
+
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileMenuOpen}
-              className="md:hidden p-2 rounded-md text-muted-foreground hover:bg-muted cursor-pointer"
+              className={cn(iconButton, "md:hidden")}
             >
               {mobileMenuOpen ? (
-                <X aria-hidden="true" className="h-6 w-6" />
+                <X aria-hidden="true" className="h-5 w-5" />
               ) : (
-                <Menu aria-hidden="true" className="h-6 w-6" />
+                <Menu aria-hidden="true" className="h-5 w-5" />
               )}
             </button>
           </div>
@@ -75,7 +92,7 @@ export function Header() {
       </div>
 
       {mobileMenuOpen && (
-        <nav aria-label="Main" className="md:hidden border-t px-4 py-2 bg-card">
+        <nav aria-label="Main" className="border-t bg-card px-4 py-2 md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.to}

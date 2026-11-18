@@ -4,10 +4,12 @@ import {
   createRootRouteWithContext,
   Link,
   Outlet,
+  useLocation,
   useRouter,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useLiveUpdates } from "@platform-booking/feature-platforms";
 import { Button, buttonVariants } from "@platform-booking/ui";
 import { Footer } from "../components/footer";
 import { Header } from "../components/header";
@@ -22,11 +24,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 );
 
 function RootLayout() {
+  // One event stream for the whole app: every page shows others' changes live.
+  useLiveUpdates();
+  const { pathname } = useLocation();
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Each page fades in, as in the previous version. */}
+        <div
+          key={pathname}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 motion-safe:animate-fade-in"
+        >
           <Outlet />
         </div>
       </main>
