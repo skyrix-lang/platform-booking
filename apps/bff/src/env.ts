@@ -27,11 +27,15 @@ export const envSchema = z
       .url({ protocol: /^https?$/ })
       .transform((url) => url.replace(/\/$/, "")),
     DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
-    /** Signs the short-lived sign-in cookie. */
-    SESSION_SECRET: z.string().min(1),
-    OIDC_ISSUER: z.url(),
-    OIDC_CLIENT_ID: z.string().min(1),
-    OIDC_CLIENT_SECRET: z.string().min(1),
+    /** Signs the short-lived sign-in cookie. Required with sign-in. */
+    SESSION_SECRET: optional(z.string()),
+    /**
+     * Sign-in is optional: the site works without it, as the previous version
+     * did. Set all three to turn it on (docs/decisions.md, "Open access").
+     */
+    OIDC_ISSUER: optional(z.url()),
+    OIDC_CLIENT_ID: optional(z.string()),
+    OIDC_CLIENT_SECRET: optional(z.string()),
     /** The least severe level that is logged (src/log.ts). */
     LOG_LEVEL: z.enum(logLevels).default("info"),
     /** The built SPA, served in production. Unset in development (Vite serves it). */
@@ -60,8 +64,27 @@ export const envSchema = z
         }
       }
     }
+    const oidc = [
+      "OIDC_ISSUER",
+      "OIDC_CLIENT_ID",
+      "OIDC_CLIENT_SECRET",
+    ] as const;
+    if (oidc.some((key) => env[key])) {
+      for (const key of [...oidc, "SESSION_SECRET"] as const) {
+        if (!env[key]) {
+          context.addIssue({
+            code: "custom",
+            message: "Required when sign-in (OIDC_*) is configured",
+            path: [key],
+          });
+        }
+      }
+    }
     if (env.NODE_ENV !== "production") return;
-    if (env.SESSION_SECRET.length < 32 || env.SESSION_SECRET === "change-me") {
+    if (
+      env.SESSION_SECRET !== undefined &&
+      (env.SESSION_SECRET.length < 32 || env.SESSION_SECRET === "change-me")
+    ) {
       context.addIssue({
         code: "custom",
         message: "Use a random value of at least 32 characters",
@@ -92,6 +115,35 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
     throw new Error(`Invalid environment variables:\n${problems}`);
   }
   return result.data;
+}
+
+export interface SignInSettings {
+  issuer: string;
+  clientId: string;
+  clientSecret: string;
+  sessionSecret: string;
+}
+
+/** The sign-in settings, or undefined when sign-in isn't configured. */
+export function signInSettings(): SignInSettings | undefined {
+  const { OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, SESSION_SECRET } =
+    env();
+  // parseEnv requires all four together.
+  if (!OIDC_ISSUER || !OIDC_CLIENT_ID || !OIDC_CLIENT_SECRET || !SESSION_SECRET)
+    return undefined;
+  return {
+    issuer: OIDC_ISSUER,
+    clientId: OIDC_CLIENT_ID,
+    clientSecret: OIDC_CLIENT_SECRET,
+    sessionSecret: SESSION_SECRET,
+  };
+}
+
+/** The sign-in settings, for code that only runs when sign-in is on. */
+export function requireSignIn(): SignInSettings {
+  const settings = signInSettings();
+  if (!settings) throw new Error("Sign-in isn't configured (OIDC_*)");
+  return settings;
 }
 
 let cached: Env | undefined;

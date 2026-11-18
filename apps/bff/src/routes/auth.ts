@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { safeReturnTo } from "@platform-booking/core";
 import { clientIp } from "../client-ip";
-import { env } from "../env";
+import { env, requireSignIn } from "../env";
 import { log } from "../log";
 import { callbackUrl, client, oidcConfig } from "../oidc";
 import { hit, type RateLimit } from "../rate-limit";
@@ -10,6 +10,8 @@ import { createSession, endSession, setSessionCookie } from "../session";
 import { upsertUser } from "../users";
 
 // Sign-in pages live in the SPA; these are the redirects around the provider.
+// Mounted only when sign-in is configured (OIDC_*, src/app.ts): the site
+// itself is open to everyone.
 // Failures go back to /sign-in?error=<code>, which shows a message.
 
 const FLOW_COOKIE = "oidc-flow";
@@ -55,7 +57,7 @@ export const authRoutes = new Hono()
       c,
       FLOW_COOKIE,
       JSON.stringify(flow),
-      env().SESSION_SECRET,
+      requireSignIn().sessionSecret,
       {
         httpOnly: true,
         secure: env().PUBLIC_URL.startsWith("https://"),
@@ -77,7 +79,11 @@ export const authRoutes = new Hono()
   })
 
   .get("/callback", async (c) => {
-    const raw = await getSignedCookie(c, env().SESSION_SECRET, FLOW_COOKIE);
+    const raw = await getSignedCookie(
+      c,
+      requireSignIn().sessionSecret,
+      FLOW_COOKIE,
+    );
     deleteCookie(c, FLOW_COOKIE, { path: "/auth" });
     if (!raw) return c.redirect(failed("Expired"));
     const flow = JSON.parse(raw) as Flow;

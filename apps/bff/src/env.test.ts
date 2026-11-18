@@ -3,7 +3,8 @@ import { parseEnv } from "./env";
 
 const development = {
   PUBLIC_URL: "http://localhost:3000",
-  DATABASE_URL: "postgres://platform_booking:platform_booking@localhost:5432/platform_booking",
+  DATABASE_URL:
+    "postgres://platform_booking:platform_booking@localhost:5432/platform_booking",
   SESSION_SECRET: "change-me",
   OIDC_ISSUER: "http://localhost:8180/realms/platform-booking",
   OIDC_CLIENT_ID: "platform-booking-web",
@@ -23,9 +24,24 @@ describe("parseEnv", () => {
   });
 
   it("lists every missing variable at once", () => {
-    expect(() => parseEnv({})).toThrow(
-      /PUBLIC_URL[\s\S]*DATABASE_URL[\s\S]*SESSION_SECRET[\s\S]*OIDC_ISSUER/,
-    );
+    expect(() => parseEnv({})).toThrow(/PUBLIC_URL[\s\S]*DATABASE_URL/);
+  });
+
+  it("runs without sign-in, as the site is open", () => {
+    const {
+      SESSION_SECRET: _secret,
+      OIDC_ISSUER: _issuer,
+      OIDC_CLIENT_ID: _id,
+      OIDC_CLIENT_SECRET: _clientSecret,
+      ...open
+    } = production;
+    expect(parseEnv(open).OIDC_ISSUER).toBeUndefined();
+  });
+
+  it("needs every sign-in setting once one is set", () => {
+    expect(() =>
+      parseEnv({ ...development, OIDC_CLIENT_SECRET: "", SESSION_SECRET: "" }),
+    ).toThrow(/OIDC_CLIENT_SECRET[\s\S]*SESSION_SECRET/);
   });
 
   it("rejects a database URL that isn't Postgres", () => {

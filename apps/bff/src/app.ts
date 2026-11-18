@@ -6,7 +6,8 @@ import { csrf } from "hono/csrf";
 import { HTTPException } from "hono/http-exception";
 import { requestId, type RequestIdVariables } from "hono/request-id";
 import { secureHeaders } from "hono/secure-headers";
-import { env } from "./env";
+import { env, signInSettings } from "./env";
+import { liveUpdates } from "./live-updates";
 import { log, withLogContext } from "./log";
 import { api, openApiDocument } from "./routes/api";
 import { authRoutes } from "./routes/auth";
@@ -17,7 +18,8 @@ import { robotsTxt, sitemapXml } from "./seo";
  * production, the built SPA. Tests call `createApp().request(...)`.
  */
 export function createApp() {
-  const { PUBLIC_URL, OIDC_ISSUER, STATIC_DIR } = env();
+  const { PUBLIC_URL, STATIC_DIR } = env();
+  const signIn = signInSettings();
   const app = new Hono<{ Variables: RequestIdVariables }>();
 
   // Every request gets an id (the proxy's `x-request-id` when it sent one),
@@ -54,7 +56,9 @@ export function createApp() {
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         // Signing out is a form whose response redirects to the provider.
-        formAction: ["'self'", new URL(OIDC_ISSUER).origin],
+        formAction: signIn
+          ? ["'self'", new URL(signIn.issuer).origin]
+          : ["'self'"],
         frameAncestors: ["'none'"],
       },
       strictTransportSecurity: "max-age=63072000; includeSubDomains",
@@ -71,8 +75,12 @@ export function createApp() {
 
   // Public, like the API's shape itself: the routes still check the session.
   app.get("/api/openapi.json", (c) => c.json(openApiDocument()));
+  // Live updates (server-sent events): not JSON, so not in the OpenAPI
+  // document. Public, like the data it announces (src/routes/api.ts).
+  app.route("/api/events", liveUpdates);
   app.route("/api", api);
-  app.route("/auth", authRoutes);
+  // Sign-in only when an identity provider is configured: the site is open.
+  if (signIn) app.route("/auth", authRoutes);
   // Unknown API and auth paths are JSON 404s, never the SPA's page.
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
   app.all("/auth/*", (c) => c.json({ error: "Not found" }, 404));
@@ -98,7 +106,7 @@ export function createApp() {
         },
       }),
     );
-    // Other files of the build (logo.svg, icon.svg), by name. A path without an
+    // Other files of the build (icon.svg, theme.js), by name. A path without an
     // extension is a client route, handled below.
     // index.html only through the route below, with PUBLIC_URL filled in; a
     // missing file is a 404, not the app's page.

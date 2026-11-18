@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
 import { env } from "./env";
+import { closeLiveUpdates } from "./live-updates";
 import { log } from "./log";
 
 // Fails at startup, not on the first request, when a setting is missing.
@@ -23,6 +24,9 @@ const server = serve(
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.on(signal, () => {
     log.info("Shutting down", { signal });
+    // Live-update streams never end by themselves: close them, or the server
+    // would wait for them until Docker kills it.
+    closeLiveUpdates();
     server.close(() => process.exit(0));
   });
 }

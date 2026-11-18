@@ -1,8 +1,9 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { createApp as CreateApp } from "./app";
 
-// The parts of the server that need no database: security headers, the CSRF
-// check, session checks on the API and the SEO files. The e2e tests cover the rest.
+// The parts of the server that need no database, with sign-in configured:
+// security headers, the CSRF check, input validation and the SEO files. The
+// e2e tests cover the rest; app-open.test.ts runs it without sign-in.
 
 let app: ReturnType<typeof CreateApp>;
 
@@ -79,30 +80,35 @@ describe("the request log", () => {
 });
 
 describe("the API", () => {
-  for (const [method, path] of [
-    ["GET", "/api/bookings"],
-    ["POST", "/api/bookings"],
-    ["PATCH", "/api/bookings/00000000-0000-4000-8000-000000000000"],
+  // Validation answers before the database is asked, which isn't reachable here.
+  for (const [method, path, body] of [
+    ["POST", "/api/bookings", { platformId: "dev01", trigram: "AB" }],
+    ["POST", "/api/platforms", { id: "has space" }],
+    ["PATCH", "/api/bookings/dev01/ABC", { endDate: "2030-02-30" }],
+    ["PUT", "/api/platforms/dev01", { kubernetes: "yes" }],
   ] as const) {
-    it(`refuses ${method} ${path} without a session`, async () => {
+    it(`refuses ${method} ${path} with invalid input`, async () => {
       const response = await app.request(path, {
         method,
         headers: { "content-type": "application/json" },
-        body: method === "GET" ? undefined : "{}",
+        body: JSON.stringify(body),
       });
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({ error: "Invalid request" });
     });
   }
 
   it("serves its OpenAPI document", async () => {
     const { openApiDocument } = await import("./routes/api");
-    expect(Object.keys(openApiDocument().paths ?? {})).toEqual(
-      expect.arrayContaining([
-        "/api/bookings",
-        "/api/bookings/{id}",
-        "/api/me",
-      ]),
-    );
+    expect(Object.keys(openApiDocument().paths ?? {}).sort()).toEqual([
+      "/api/bookings",
+      "/api/bookings/history",
+      "/api/bookings/{platformId}/{trigram}",
+      "/api/health",
+      "/api/me",
+      "/api/platforms",
+      "/api/platforms/{id}",
+    ]);
   });
 });
 

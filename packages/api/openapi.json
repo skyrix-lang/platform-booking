@@ -38,50 +38,27 @@
           "user"
         ]
       },
-      "Booking": {
+      "Platform": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "title": {
             "type": "string"
           },
           "description": {
             "type": "string"
           },
-          "date": {
-            "type": "string",
-            "format": "date"
+          "kubernetes": {
+            "type": "boolean"
           },
-          "time": {
-            "type": "string",
-            "example": "09:30"
-          },
-          "duration": {
-            "type": "integer"
-          },
-          "status": {
-            "$ref": "#/components/schemas/BookingStatus"
+          "nightly": {
+            "type": "boolean"
           }
         },
         "required": [
           "id",
-          "title",
           "description",
-          "date",
-          "time",
-          "duration",
-          "status"
-        ]
-      },
-      "BookingStatus": {
-        "type": "string",
-        "enum": [
-          "pending",
-          "confirmed",
-          "cancelled"
+          "kubernetes",
+          "nightly"
         ]
       },
       "ApiErrorBody": {
@@ -99,49 +76,159 @@
           "error"
         ]
       },
-      "CreateBooking": {
+      "CreatePlatform": {
         "type": "object",
         "properties": {
-          "title": {
+          "id": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$"
           },
           "description": {
             "type": "string",
-            "maxLength": 2000,
+            "maxLength": 200,
             "default": ""
           },
-          "date": {
-            "type": "string",
-            "format": "date"
+          "kubernetes": {
+            "type": "boolean",
+            "default": false
           },
-          "time": {
-            "type": "string",
-            "format": "time"
-          },
-          "duration": {
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 1440
+          "nightly": {
+            "type": "boolean",
+            "default": false
           }
         },
         "required": [
-          "title",
-          "date",
-          "time",
-          "duration"
+          "id"
+        ]
+      },
+      "UpdatePlatform": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 200,
+            "default": ""
+          },
+          "kubernetes": {
+            "type": "boolean",
+            "default": false
+          },
+          "nightly": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "platformId": {
+            "type": "string"
+          },
+          "trigram": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "bookedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "platformId",
+          "trigram",
+          "startDate",
+          "endDate",
+          "bookedAt"
+        ]
+      },
+      "BookingHistoryEntry": {
+        "type": "object",
+        "properties": {
+          "platformId": {
+            "type": "string"
+          },
+          "trigram": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "bookedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "releasedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/HistoryReason"
+          }
+        },
+        "required": [
+          "platformId",
+          "trigram",
+          "startDate",
+          "endDate",
+          "bookedAt",
+          "releasedAt",
+          "reason"
+        ]
+      },
+      "HistoryReason": {
+        "type": "string",
+        "enum": [
+          "released",
+          "expired"
+        ]
+      },
+      "CreateBooking": {
+        "type": "object",
+        "properties": {
+          "platformId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trigram": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "platformId",
+          "trigram",
+          "endDate"
         ]
       },
       "UpdateBooking": {
         "type": "object",
         "properties": {
-          "status": {
-            "$ref": "#/components/schemas/BookingStatus"
+          "endDate": {
+            "type": "string",
+            "format": "date"
           }
         },
         "required": [
-          "status"
+          "endDate"
         ]
       }
     },
@@ -214,29 +301,44 @@
         }
       }
     },
-    "/api/bookings": {
+    "/api/platforms": {
       "get": {
-        "operationId": "listBookings",
-        "parameters": [
-          {
-            "schema": {
-              "$ref": "#/components/schemas/BookingStatus"
-            },
-            "required": false,
-            "name": "status",
-            "in": "query"
-          }
-        ],
+        "operationId": "listPlatforms",
         "responses": {
           "200": {
-            "description": "The user's bookings, in date order",
+            "description": "Every platform, by id",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Booking"
+                    "$ref": "#/components/schemas/Platform"
                   }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPlatform",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlatform"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Platform"
                 }
               }
             }
@@ -251,12 +353,117 @@
               }
             }
           },
-          "401": {
-            "description": "Not signed in",
+          "409": {
+            "description": "A platform with this id already exists",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/platforms/{id}": {
+      "put": {
+        "operationId": "updatePlatform",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlatform"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Platform"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePlatform",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted; its bookings are released"
+          },
+          "404": {
+            "description": "No such platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings": {
+      "get": {
+        "operationId": "listBookings",
+        "responses": {
+          "200": {
+            "description": "The active bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Booking"
+                  }
                 }
               }
             }
@@ -277,7 +484,7 @@
         },
         "responses": {
           "201": {
-            "description": "The new booking, always pending",
+            "description": "The new booking, from today",
             "content": {
               "application/json": {
                 "schema": {
@@ -287,7 +494,7 @@
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request, an end date in the past, or past today on a nightly platform",
             "content": {
               "application/json": {
                 "schema": {
@@ -296,8 +503,18 @@
               }
             }
           },
-          "401": {
-            "description": "Not signed in",
+          "404": {
+            "description": "No such platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "This trigram has already booked this platform",
             "content": {
               "application/json": {
                 "schema": {
@@ -309,7 +526,27 @@
         }
       }
     },
-    "/api/bookings/{id}": {
+    "/api/bookings/history": {
+      "get": {
+        "operationId": "listBookingHistory",
+        "responses": {
+          "200": {
+            "description": "Bookings that ended in the last three weeks, the most recent first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingHistoryEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/{platformId}/{trigram}": {
       "patch": {
         "operationId": "updateBooking",
         "parameters": [
@@ -318,7 +555,15 @@
               "type": "string"
             },
             "required": true,
-            "name": "id",
+            "name": "platformId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "trigram",
             "in": "path"
           }
         ],
@@ -334,7 +579,7 @@
         },
         "responses": {
           "200": {
-            "description": "The updated booking",
+            "description": "The booking with its new end date",
             "content": {
               "application/json": {
                 "schema": {
@@ -344,17 +589,7 @@
             }
           },
           "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorBody"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Not signed in",
+            "description": "Invalid request, an end date in the past, or past today on a nightly platform",
             "content": {
               "application/json": {
                 "schema": {
@@ -364,7 +599,43 @@
             }
           },
           "404": {
-            "description": "No such booking for this user",
+            "description": "No such booking",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "releaseBooking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "platformId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "trigram",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done"
+          },
+          "404": {
+            "description": "No such booking",
             "content": {
               "application/json": {
                 "schema": {
