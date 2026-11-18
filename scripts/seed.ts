@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { users } from "@booking/db";
-import { seedBookings } from "@booking/db/seed";
+import { users } from "@platform-booking/db";
+import { seedBookings } from "@platform-booking/db/seed";
 import { loadEnv } from "./env";
 
 // yarn db:seed <email>: gives that user the demo bookings. They must have signed

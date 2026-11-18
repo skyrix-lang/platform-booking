@@ -146,7 +146,7 @@ test.describe("sign-in limits", () => {
   }) => {
     for (let started = 0; started < 30; started++) {
       const response = await request.get("/auth/login", { maxRedirects: 0 });
-      expect(response.headers().location).toContain("/realms/booking/");
+      expect(response.headers().location).toContain("/realms/platform-booking/");
     }
 
     const refused = await request.get("/auth/login", { maxRedirects: 0 });

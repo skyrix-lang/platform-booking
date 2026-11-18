@@ -132,7 +132,7 @@ package in `dependenciesMeta`, never globally.
 
 ## Each checkout is isolated
 
-The main checkout uses ports 3000 (Vite) and 3001 (BFF) and the `booking`
+The main checkout uses ports 3000 (Vite) and 3001 (BFF) and the `platform_booking`
 database. A git worktree gets its own dev ports, dev database and e2e port and
 database (`scripts/checkout.ts`, `yarn setup`). Postgres and Keycloak are shared.
 **Why:** several agents can work in parallel worktrees without one's migrations or

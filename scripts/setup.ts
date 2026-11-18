@@ -43,7 +43,7 @@ function createEnvFile() {
     content = setVariable(
       content,
       "DATABASE_URL",
-      `postgres://booking:booking@localhost:5432/${dev}`,
+      `postgres://platform_booking:platform_booking@localhost:5432/${dev}`,
     );
   }
   writeFileSync(".env", content);

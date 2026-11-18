@@ -4,7 +4,7 @@ test.describe("home page", () => {
   test("shows the hero, features and title", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page).toHaveTitle("BookingHub");
+    await expect(page).toHaveTitle("Platform Booking");
     await expect(
       page.getByRole("heading", { name: "Book with confidence" }),
     ).toBeVisible();
@@ -79,7 +79,7 @@ test.describe("unknown pages", () => {
     // the page asks search engines not to index it.
     await page.goto("/does-not-exist");
 
-    await expect(page).toHaveTitle("Page not found | BookingHub");
+    await expect(page).toHaveTitle("Page not found | Platform Booking");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
       "noindex",

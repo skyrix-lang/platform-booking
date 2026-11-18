@@ -9,7 +9,7 @@ import {
 } from "@playwright/test";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
-import type { Booking } from "@booking/core";
+import type { Booking } from "@platform-booking/core";
 import { createLocalSession, storageState } from "../scripts/local-session";
 
 /**

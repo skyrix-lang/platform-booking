@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { seedBookings } from "@booking/db/seed";
+import { seedBookings } from "@platform-booking/db/seed";
 import { loadEnv } from "./env";
 import {
   createLocalSession,

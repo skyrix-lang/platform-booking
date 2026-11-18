@@ -1,4 +1,4 @@
-# booking-platform
+# platform-booking
 
 A full-stack starter for new projects, organized as **versioned packages plus a
 thin app per customer** and shipped as one Docker image. A small bookings
@@ -57,7 +57,7 @@ yarn rename acme-portal "Acme Portal"
 ```
 
 `yarn rename` replaces the starter's name wherever it's an identifier: the
-`@booking/*` package scope, the root package and image, the local containers,
+`@platform-booking/*` package scope, the root package and image, the local containers,
 database, Keycloak realm and client, and the site name. It leaves the bookings
 feature alone: keep it to copy from, and remove it when the project has its
 own. Review the diff, then continue below. It also writes `.starter.json`:
@@ -210,7 +210,7 @@ and commit both. `yarn verify` fails when the generated client is stale.
 
 - **Unit and component tests** (`yarn test:unit`) live next to the code. Pure
   logic runs on Node. Components run in jsdom with Testing Library, and every
-  request goes to MSW handlers from `@booking/api/mocks`; an unhandled request
+  request goes to MSW handlers from `@platform-booking/api/mocks`; an unhandled request
   fails the test.
 - **End-to-end tests** (`yarn test`) build the app and run it with the bundled
   BFF on its own port and database, signing in through the local Keycloak.
@@ -223,12 +223,12 @@ and commit both. `yarn verify` fails when the generated client is stale.
 ```bash
 yarn docker:build
 # Apply migrations (a deploy step, never at startup), then start the app
-docker build --target migrate -t booking-migrate -f docker/Dockerfile .
-docker run --rm -e DATABASE_URL=... booking-migrate
+docker build --target migrate -t platform-booking-migrate -f docker/Dockerfile .
+docker run --rm -e DATABASE_URL=... platform-booking-migrate
 docker run -p 3000:3000 -e PUBLIC_URL=https://bookings.example.com \
   -e DATABASE_URL=... -e SESSION_SECRET=... \
   -e OIDC_ISSUER=... -e OIDC_CLIENT_ID=... -e OIDC_CLIENT_SECRET=... \
-  booking-platform:1.0.0
+  platform-booking:1.0.0
 ```
 
 The runtime image holds Node, a single bundled `server.js` and the static

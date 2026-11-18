@@ -1,5 +1,5 @@
 {
-  "name": "@booking/web",
+  "name": "@platform-booking/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,11 +13,11 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@booking/api": "workspace:^",
-    "@booking/core": "workspace:^",
-    "@booking/feature-bookings": "workspace:^",
-    "@booking/theme-default": "workspace:^",
-    "@booking/ui": "workspace:^",
+    "@platform-booking/api": "workspace:^",
+    "@platform-booking/core": "workspace:^",
+    "@platform-booking/feature-bookings": "workspace:^",
+    "@platform-booking/theme-default": "workspace:^",
+    "@platform-booking/ui": "workspace:^",
     "@tanstack/react-query": "^5.105.3",
     "@tanstack/react-router": "^1.170.46",
     "lucide-react": "^1.67.0",

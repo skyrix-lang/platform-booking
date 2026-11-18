@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { BOOKING_STATUSES } from "@booking/core";
+import { BOOKING_STATUSES } from "@platform-booking/core";
 
 export const bookingStatus = pgEnum("booking_status", BOOKING_STATUSES);
 

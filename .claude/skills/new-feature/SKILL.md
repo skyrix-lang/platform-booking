@@ -55,15 +55,15 @@ the result; `yarn verify` fails if it's stale. Never write API types by hand.
 
 ## 6. UI (`packages/feature-<name>`)
 
-- A new feature package gets its own `package.json` (deps on `@booking/core`,
-  `@booking/api`, `@booking/ui` only), a short `AGENTS.md`, and an entry in
-  `scripts/check-boundaries.ts` if its name doesn't match `@booking/feature-*`.
+- A new feature package gets its own `package.json` (deps on `@platform-booking/core`,
+  `@platform-booking/api`, `@platform-booking/ui` only), a short `AGENTS.md`, and an entry in
+  `scripts/check-boundaries.ts` if its name doesn't match `@platform-booking/feature-*`.
 - Read with the generated `useX` hooks; pass `throwOnError: throwUnexpected()`
   so unexpected errors reach the route's error page.
 - Mutate with the generated mutation hooks, then invalidate the list's query
   key (`getXQueryKey()`).
 - Forms: React Hook Form with `zodResolver(<schema from core>)` and the
-  `Field`, `FieldLabel`, `FieldError`, `Input` components from `@booking/ui`.
+  `Field`, `FieldLabel`, `FieldError`, `Input` components from `@platform-booking/ui`.
 - URL state, such as filters, lives in the route's search params, not React
   state. Client state that isn't server data goes in Zustand (ask first: it
   isn't installed yet).
@@ -72,7 +72,7 @@ the result; `yarn verify` fails if it's stale. Never write API types by hand.
 ## 7. Tests
 
 - Component tests next to the component (`*.test.tsx`, Vitest + Testing
-  Library), with handlers from `@booking/api/mocks` fixed to known data.
+  Library), with handlers from `@platform-booking/api/mocks` fixed to known data.
 - API cases in `e2e/api.spec.ts`, including invalid input and unknown records.
 - Browser tests for the user flow, the pending state and the failure path.
   They also run axe: fix any violation.

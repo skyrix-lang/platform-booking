@@ -14,7 +14,7 @@ import {
 test("lists the bookings and sets the title", async ({ page }) => {
   await page.goto("/bookings");
 
-  await expect(page).toHaveTitle("Bookings | BookingHub");
+  await expect(page).toHaveTitle("Bookings | Platform Booking");
   await expect(bookingCard(page, "Team Sync")).toBeVisible();
   await expect(bookingCard(page, "Project Review")).toBeVisible();
   await expect(bookingCard(page, "Client Call")).toBeVisible();

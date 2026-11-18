@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "./db";
-import { bookings } from "@booking/db";
-import type { CreateBookingInput } from "@booking/core";
-import type { Booking, BookingStatus } from "@booking/core";
+import { bookings } from "@platform-booking/db";
+import type { CreateBookingInput } from "@platform-booking/core";
+import type { Booking, BookingStatus } from "@platform-booking/core";
 
 // Every function takes the signed-in user's id and only reads or changes that
 // user's bookings. Another user's booking behaves as if it didn't exist.

@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { redirect } from "@tanstack/react-router";
-import { getGetMeQueryOptions } from "@booking/api";
+import { getGetMeQueryOptions } from "@platform-booking/api";
 
 /**
  * For a route's `beforeLoad`: a signed-out visitor is sent to sign in, and

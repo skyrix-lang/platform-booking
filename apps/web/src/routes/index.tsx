@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, CircleCheck, Clock } from "lucide-react";
-import { buttonVariants, Card } from "@booking/ui";
+import { buttonVariants, Card } from "@platform-booking/ui";
 import { pageFor } from "../overrides";
 import { usePageMeta } from "../page-meta";
 

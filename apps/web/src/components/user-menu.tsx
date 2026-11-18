@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useGetMe } from "@booking/api";
-import { Button, buttonVariants } from "@booking/ui";
+import { useGetMe } from "@platform-booking/api";
+import { Button, buttonVariants } from "@platform-booking/ui";
 
 export function UserMenu() {
   const me = useGetMe();

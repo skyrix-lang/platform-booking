@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { bookingStatusSchema } from "@booking/core";
-import { BookingsPage } from "@booking/feature-bookings";
+import { bookingStatusSchema } from "@platform-booking/core";
+import { BookingsPage } from "@platform-booking/feature-bookings";
 import { requireUser } from "../auth";
 import { pageFor } from "../overrides";
 import { usePageMeta } from "../page-meta";

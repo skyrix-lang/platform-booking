@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
-import { safeReturnTo } from "@booking/core";
+import { safeReturnTo } from "@platform-booking/core";
 import { clientIp } from "../client-ip";
 import { env } from "../env";
 import { log } from "../log";

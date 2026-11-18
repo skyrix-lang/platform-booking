@@ -3,11 +3,11 @@ import { parseEnv } from "./env";
 
 const development = {
   PUBLIC_URL: "http://localhost:3000",
-  DATABASE_URL: "postgres://booking:booking@localhost:5432/booking",
+  DATABASE_URL: "postgres://platform_booking:platform_booking@localhost:5432/platform_booking",
   SESSION_SECRET: "change-me",
-  OIDC_ISSUER: "http://localhost:8180/realms/booking",
-  OIDC_CLIENT_ID: "booking-web",
-  OIDC_CLIENT_SECRET: "booking-web-secret",
+  OIDC_ISSUER: "http://localhost:8180/realms/platform-booking",
+  OIDC_CLIENT_ID: "platform-booking-web",
+  OIDC_CLIENT_SECRET: "platform-booking-web-secret",
 };
 
 const production = {

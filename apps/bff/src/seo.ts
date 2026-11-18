@@ -1,4 +1,4 @@
-import { PUBLIC_PATHS } from "@booking/core";
+import { PUBLIC_PATHS } from "@platform-booking/core";
 
 // Built from PUBLIC_URL at request time, so one image serves any domain.
 

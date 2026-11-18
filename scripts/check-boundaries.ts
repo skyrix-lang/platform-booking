@@ -9,20 +9,20 @@ import { dirname, join, relative, resolve } from "node:path";
 
 /** Which workspaces each one may depend on. A pattern ending in * is a prefix. */
 const ALLOWED: Record<string, string[]> = {
-  "@booking/core": [],
-  "@booking/db": ["@booking/core"],
-  "@booking/api": [],
-  "@booking/ui": [],
-  "@booking/theme-default": [],
-  "@booking/feature-*": ["@booking/core", "@booking/api", "@booking/ui"],
-  "@booking/web": [
-    "@booking/core",
-    "@booking/api",
-    "@booking/ui",
-    "@booking/feature-*",
-    "@booking/theme-*",
+  "@platform-booking/core": [],
+  "@platform-booking/db": ["@platform-booking/core"],
+  "@platform-booking/api": [],
+  "@platform-booking/ui": [],
+  "@platform-booking/theme-default": [],
+  "@platform-booking/feature-*": ["@platform-booking/core", "@platform-booking/api", "@platform-booking/ui"],
+  "@platform-booking/web": [
+    "@platform-booking/core",
+    "@platform-booking/api",
+    "@platform-booking/ui",
+    "@platform-booking/feature-*",
+    "@platform-booking/theme-*",
   ],
-  "@booking/bff": ["@booking/core", "@booking/db"],
+  "@platform-booking/bff": ["@platform-booking/core", "@platform-booking/db"],
 };
 
 const matches = (pattern: string, name: string) =>
@@ -88,7 +88,7 @@ for (const workspace of workspaces) {
       if (specifier.startsWith("node:") || builtinModules.includes(specifier))
         continue;
       const dependency = packageName(specifier);
-      if (dependency.startsWith("@booking/") && dependency !== name) {
+      if (dependency.startsWith("@platform-booking/") && dependency !== name) {
         if (!rule[1].some((pattern) => matches(pattern, dependency))) {
           problems.push(`${where}: ${name} may not depend on ${dependency}`);
           continue;

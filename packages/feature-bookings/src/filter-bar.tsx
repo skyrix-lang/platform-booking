@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { BOOKING_STATUSES, type BookingStatus } from "@booking/core";
-import { buttonVariants } from "@booking/ui";
+import { BOOKING_STATUSES, type BookingStatus } from "@platform-booking/core";
+import { buttonVariants } from "@platform-booking/ui";
 
 const filters = ["all", ...BOOKING_STATUSES] as const;
 

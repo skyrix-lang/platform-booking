@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import { getGetMeQueryOptions } from "@booking/api";
-import { safeReturnTo } from "@booking/core";
-import { buttonVariants, Card } from "@booking/ui";
+import { getGetMeQueryOptions } from "@platform-booking/api";
+import { safeReturnTo } from "@platform-booking/core";
+import { buttonVariants, Card } from "@platform-booking/ui";
 import { usePageMeta } from "../page-meta";
 
 // The BFF sends people back here with ?error=<code> when sign-in fails

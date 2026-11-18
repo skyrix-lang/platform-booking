@@ -1,4 +1,4 @@
-import { site } from "@booking/core";
+import { site } from "@platform-booking/core";
 
 // Read once when the app loads: a tab left open over New Year keeps the old year.
 const year = new Date().getFullYear();

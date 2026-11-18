@@ -8,7 +8,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Button, buttonVariants } from "@booking/ui";
+import { Button, buttonVariants } from "@platform-booking/ui";
 import { Footer } from "../components/footer";
 import { Header } from "../components/header";
 import { usePageMeta } from "../page-meta";

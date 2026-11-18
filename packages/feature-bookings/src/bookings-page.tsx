@@ -1,8 +1,8 @@
 import { CalendarDays, Plus } from "lucide-react";
 import { useState } from "react";
-import { throwUnexpected, useListBookings } from "@booking/api";
-import type { BookingStatus } from "@booking/core";
-import { Button, Card } from "@booking/ui";
+import { throwUnexpected, useListBookings } from "@platform-booking/api";
+import type { BookingStatus } from "@platform-booking/core";
+import { Button, Card } from "@platform-booking/ui";
 import { BookingCard } from "./booking-card";
 import { CreateBookingForm } from "./create-booking-form";
 import { FilterBar } from "./filter-bar";

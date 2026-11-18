@@ -10,8 +10,8 @@ beforeAll(async () => {
   vi.stubEnv("PUBLIC_URL", "https://bookings.example.com");
   vi.stubEnv("DATABASE_URL", "postgres://unused@localhost:1/unused");
   vi.stubEnv("SESSION_SECRET", "test-secret");
-  vi.stubEnv("OIDC_ISSUER", "https://id.example.com/realms/booking");
-  vi.stubEnv("OIDC_CLIENT_ID", "booking-web");
+  vi.stubEnv("OIDC_ISSUER", "https://id.example.com/realms/platform-booking");
+  vi.stubEnv("OIDC_CLIENT_ID", "platform-booking-web");
   vi.stubEnv("OIDC_CLIENT_SECRET", "secret");
   const { createApp } = await import("./app");
   app = createApp();

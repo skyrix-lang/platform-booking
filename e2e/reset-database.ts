@@ -1,8 +1,8 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
-import { users } from "@booking/db";
-import { seedBookings } from "@booking/db/seed";
+import { users } from "@platform-booking/db";
+import { seedBookings } from "@platform-booking/db/seed";
 import { SHARED_USER_EMAIL } from "./auth-state";
 
 // Recreates the test database, so every run starts from the same state.

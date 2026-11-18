@@ -2,8 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-import { getListBookingsQueryKey, useCreateBooking } from "@booking/api";
-import { createBookingSchema } from "@booking/core";
+import { getListBookingsQueryKey, useCreateBooking } from "@platform-booking/api";
+import { createBookingSchema } from "@platform-booking/core";
 import {
   Button,
   Card,
@@ -11,7 +11,7 @@ import {
   FieldError,
   FieldLabel,
   Input,
-} from "@booking/ui";
+} from "@platform-booking/ui";
 
 type FormInput = z.input<typeof createBookingSchema>;
 type FormOutput = z.output<typeof createBookingSchema>;

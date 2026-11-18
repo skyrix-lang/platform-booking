@@ -2,13 +2,13 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
-import type { Booking, CreateBooking } from "@booking/api";
+import type { Booking, CreateBooking } from "@platform-booking/api";
 import {
   getCreateBookingMockHandler,
   getListBookingsMockHandler,
   getUpdateBookingMockHandler,
-} from "@booking/api/mocks";
-import { server } from "@booking/api/test-server";
+} from "@platform-booking/api/mocks";
+import { server } from "@platform-booking/api/test-server";
 import { BookingsPage } from "./bookings-page";
 import { renderPage } from "./test-utils";
 

@@ -4,9 +4,9 @@ import {
   throwUnexpected,
   useUpdateBooking,
   type Booking,
-} from "@booking/api";
-import type { BookingStatus } from "@booking/core";
-import { Badge, Button, Card } from "@booking/ui";
+} from "@platform-booking/api";
+import type { BookingStatus } from "@platform-booking/core";
+import { Badge, Button, Card } from "@platform-booking/ui";
 import { statusTone } from "./status";
 
 export function BookingCard({ booking }: { booking: Booking }) {

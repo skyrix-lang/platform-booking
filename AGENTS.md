@@ -74,12 +74,12 @@ databases.
 - Everything renders in the browser; there is no server rendering. Routes are
   TanStack Router file routes; links and search params are type-checked.
 - Read and write server data only through the generated hooks in
-  `@booking/api`. Pass `throwOnError: throwUnexpected(...)` so unexpected errors
+  `@platform-booking/api`. Pass `throwOnError: throwUnexpected(...)` so unexpected errors
   reach the route's error page; invalidate query keys after a mutation.
 - URL state (filters, tabs) lives in validated search params. Client-only state
   goes in Zustand (not installed yet: ask when the first feature needs it).
-- Forms: React Hook Form + `zodResolver` with the schema from `@booking/core`,
-  and the `Field` components from `@booking/ui`.
+- Forms: React Hook Form + `zodResolver` with the schema from `@platform-booking/core`,
+  and the `Field` components from `@platform-booking/ui`.
 - Style with theme tokens only. A link styled as a button uses
   `buttonVariants()`: never put a `<button>` inside a link.
 - Accessibility is a requirement (WCAG 2.2 AA, European Accessibility Act):
@@ -130,7 +130,7 @@ Third-party scripts, images or APIs need their origins added to the CSP in
 
 - Pure logic and schemas: Vitest, next to the file (`*.test.ts`).
 - Components: Vitest + Testing Library in jsdom, with MSW handlers from
-  `@booking/api/mocks`; unhandled requests fail the test.
+  `@platform-booking/api/mocks`; unhandled requests fail the test.
 - New behaviour gets a Playwright test in `e2e/`. Import `test` and `expect`
   from `e2e/support.ts`, so console errors and axe violations fail the test.
 - Tests run in parallel on one database. Tests that change data create their own

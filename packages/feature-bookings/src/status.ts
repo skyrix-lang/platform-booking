@@ -1,4 +1,4 @@
-import type { BookingStatus } from "@booking/core";
+import type { BookingStatus } from "@platform-booking/core";
 
 export const statusTone = {
   pending: "warning",

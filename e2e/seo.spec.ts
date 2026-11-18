@@ -10,12 +10,12 @@ test.describe("home page", () => {
     // What a crawler or link preview reads before any JavaScript runs.
     const html = await (await request.get("/")).text();
 
-    expect(html).toContain("<title>BookingHub</title>");
+    expect(html).toContain("<title>Platform Booking</title>");
     expect(html).toContain(`<link rel="canonical" href="${baseURL}/" />`);
     expect(html).toMatch(
       /<meta\s+name="description"\s+content="[^"]*manage your bookings/,
     );
-    expect(html).toContain('<meta property="og:title" content="BookingHub" />');
+    expect(html).toContain('<meta property="og:title" content="Platform Booking" />');
     expect(html).toContain(`<meta property="og:url" content="${baseURL}/" />`);
     expect(html).not.toContain("%PUBLIC_URL%");
     expect(html).not.toContain('name="robots"');
@@ -33,7 +33,7 @@ test.describe("home page", () => {
     expect(JSON.parse(json!)).toMatchObject({
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "BookingHub",
+      name: "Platform Booking",
       url: baseURL,
     });
   });

@@ -1,7 +1,7 @@
 @import "tailwindcss";
-@import "@booking/ui/styles.css";
+@import "@platform-booking/ui/styles.css";
 /* The customer's brand: swap this one import for their theme package. */
-@import "@booking/theme-default/theme.css";
+@import "@platform-booking/theme-default/theme.css";
 
 /* Tailwind only scans this app by default; the packages hold components too. */
 @source "../../../packages";

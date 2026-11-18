@@ -1,5 +1,5 @@
 {
-  "name": "@booking/db",
+  "name": "@platform-booking/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "check": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@booking/core": "workspace:^",
+    "@platform-booking/core": "workspace:^",
     "drizzle-orm": "^0.45.4",
     "pg": "^8.23.1"
   },

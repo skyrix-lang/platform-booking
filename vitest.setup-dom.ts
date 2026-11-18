@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
-import { server } from "@booking/api/test-server";
+import { server } from "@platform-booking/api/test-server";
 
 // jsdom has no scrolling; the router restores scroll positions.
 window.scrollTo = () => {};

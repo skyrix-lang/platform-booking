@@ -7,4 +7,4 @@ overrides (`src/overrides.ts`) and layout. Feature screens come from
 - Routes are TanStack Router file routes; `src/routeTree.gen.ts` is generated
   (commit it, never edit it).
 - App routes call `requireUser` in `beforeLoad` and `usePageMeta` with `noindex`.
-- Never import `@booking/db` or anything server-side.
+- Never import `@platform-booking/db` or anything server-side.

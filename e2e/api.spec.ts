@@ -1,4 +1,4 @@
-import type { Booking } from "@booking/core";
+import type { Booking } from "@platform-booking/core";
 import { createBooking, expect, test } from "./support";
 
 const validBooking = {

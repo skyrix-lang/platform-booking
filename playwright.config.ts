@@ -11,7 +11,7 @@ const BASE_URL = `http://localhost:${PORT}`;
 // process.env so the server, and the test workers, use it instead of .env.
 process.env.DATABASE_URL =
   process.env.E2E_DATABASE_URL ??
-  `postgres://booking:booking@localhost:5432/${databaseNames().e2e}`;
+  `postgres://platform_booking:platform_booking@localhost:5432/${databaseNames().e2e}`;
 
 // The server under test: the production build of the SPA, served by the
 // bundled BFF, signing in through the local Keycloak (`yarn keycloak:up`).
@@ -24,9 +24,9 @@ Object.assign(process.env, {
   // Production requires at least 32 characters (apps/bff/src/env.ts).
   SESSION_SECRET: "e2e-secret-not-for-production-0123456789",
   OIDC_ISSUER:
-    process.env.E2E_OIDC_ISSUER ?? "http://localhost:8180/realms/booking",
-  OIDC_CLIENT_ID: "booking-web",
-  OIDC_CLIENT_SECRET: "booking-web-dev-secret",
+    process.env.E2E_OIDC_ISSUER ?? "http://localhost:8180/realms/platform-booking",
+  OIDC_CLIENT_ID: "platform-booking-web",
+  OIDC_CLIENT_SECRET: "platform-booking-web-dev-secret",
   // Tests never send real mail, even with SMTP settings in .env: an empty
   // SMTP_HOST wins over the file and means mail is only logged (src/mail.ts).
   SMTP_HOST: "",

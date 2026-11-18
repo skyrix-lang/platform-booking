@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { site } from "@booking/core";
-import { cn } from "@booking/ui";
+import { site } from "@platform-booking/core";
+import { cn } from "@platform-booking/ui";
 import { UserMenu } from "./user-menu";
 
 const navLinks = [

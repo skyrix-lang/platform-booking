@@ -1,5 +1,5 @@
 {
-  "name": "@booking/bff",
+  "name": "@platform-booking/bff",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,8 +14,8 @@
     "export-openapi": "tsx scripts/export-openapi.ts"
   },
   "dependencies": {
-    "@booking/core": "workspace:^",
-    "@booking/db": "workspace:^",
+    "@platform-booking/core": "workspace:^",
+    "@platform-booking/db": "workspace:^",
     "@hono/node-server": "^2.1.6",
     "@hono/zod-openapi": "^1.6.3",
     "drizzle-orm": "^0.45.4",

@@ -6,7 +6,7 @@ import {
   bookingStatusSchema,
   createBookingSchema,
   updateBookingSchema,
-} from "@booking/core";
+} from "@platform-booking/core";
 import { createBooking, getBookings, updateBookingStatus } from "../bookings";
 import { isDatabaseReachable } from "../health";
 import { getSessionUser, type SessionUser } from "../session";
@@ -181,6 +181,6 @@ export function openApiDocument() {
   document.route("/api", api);
   return document.getOpenAPI31Document({
     openapi: "3.1.0",
-    info: { title: "BookingHub API", version: "1.0.0" },
+    info: { title: "Platform Booking API", version: "1.0.0" },
   });
 }
