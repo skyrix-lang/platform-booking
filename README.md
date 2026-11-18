@@ -77,6 +77,10 @@ Each package has a short `AGENTS.md` with its rules.
 The project was created with `yarn rename platform-booking "Platform Booking"`
 from the starter; `.starter.json` records the starter commit it started from.
 
+The whole setup, from the clone to a GitHub repository with auto-merge, CI,
+Claude, Renovate and the starter sync, step by step (Claude can run most of
+it): [docs/new-project.md](docs/new-project.md).
+
 - **Versions:** Renovate updates every repository with one policy, the
   starter's `default.json`; each `renovate.json` only extends it. Install the
   Renovate GitHub app on each repository.
