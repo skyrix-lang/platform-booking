@@ -8,7 +8,9 @@ features. Two mechanisms keep them close to it afterwards:
 | Dependency and image versions                                 | Renovate, in each repository, with the policy in `default.json` |
 | Everything else: scripts, CI, Docker, configs, packages, docs | `yarn sync-from-starter`, run in the project when you choose    |
 
-Both are recorded in `docs/decisions.md` ("Projects follow the starter").
+A GitHub workflow runs the sync for you each week and opens a pull request,
+with Claude resolving conflicts ("Automatic sync" below). Both are recorded in
+`docs/decisions.md` ("Projects follow the starter").
 
 ## Versions: Renovate
 
@@ -34,6 +36,9 @@ The policy:
 - The Node base image digest is updated; Node major versions are never bumped
   (they're chosen on purpose: `.nvmrc`, `docker/Dockerfile`).
 - The lockfile is refreshed weekly, for the dependencies of dependencies.
+- Everything but majors (minor, patch, digests, the weekly lockfile) merges
+  itself, with a merge commit, once the checks `main` requires pass. Majors
+  wait for you.
 
 To change the policy for every project, change `default.json` in the starter
 and merge it: Renovate reads it from the starter's default branch on its next
@@ -41,7 +46,10 @@ run. A project that needs an exception adds rules to its own `renovate.json`,
 after the `extends`.
 
 **Setup:** install the [Renovate GitHub app](https://github.com/apps/renovate)
-on the starter and on each project's repository. Check the config with
+on the starter and on each project's repository, and run
+`scripts/setup-github.sh <owner/repo>` once for each ("Auto-merge" below):
+without required checks, GitHub would merge an auto-merge pull request before
+CI has run. Check the config with
 `npx --package renovate renovate-config-validator default.json renovate.json`.
 
 ## Everything else: `yarn sync-from-starter`
@@ -125,11 +133,100 @@ The sync script isn't in such a project yet: run the starter's copy from the
 project's directory, `yarn tsx ../project-starter/scripts/sync-from-starter.ts --base <commit>`.
 It brings the script in.
 
+## Automatic sync
+
+`.github/workflows/sync-from-starter.yml`, which every project receives from
+the starter, runs the steps above on GitHub: as soon as something is merged
+into the starter's `main` (the starter's `notify-projects.yml` asks each
+project listed in its `STARTER_PROJECTS` variable), every Monday at 05:00 UTC,
+and whenever you click **Run workflow** in the project's Actions tab.
+
+1. It runs `yarn sync-from-starter` on a `sync-from-starter` branch. If a sync
+   pull request is already open, it continues on that branch, so fixes made on
+   it are kept.
+2. Claude goes over it: resolves any conflicts (keeping the project's choices
+   where the two disagree), adapts what came from the starter but is the
+   starter's (an example sender, a domain, a name `yarn rename`'s rules don't
+   know) to the project, runs `yarn verify`, and explains what it did and what
+   it wasn't sure of in the pull request.
+3. It opens the pull request, or updates the open one. Conflicts Claude
+   couldn't resolve (or with no Claude secret) leave it a draft, listing them.
+4. A **clean** sync merges itself once CI passes: the starter merged without
+   conflicts, Claude's pass succeeded, and `STARTER_SYNC_TOKEN` is set (CI
+   doesn't run otherwise). Anything else waits for you to review and merge:
+   conflicts, even ones Claude resolved, or no Claude. To review a clean sync
+   anyway, click **Disable auto-merge** on its pull request before CI ends.
+
+When the starter has nothing new, it does nothing. In the starter itself (no
+`.starter.json`) it does nothing either.
+
+### Setup, once per project repository
+
+- **Settings → Actions → General → Workflow permissions:** "Read and write
+  permissions", and tick "Allow GitHub Actions to create and approve pull
+  requests".
+- **Secret `CLAUDE_CODE_OAUTH_TOKEN`** (Settings → Secrets and variables →
+  Actions): run `claude setup-token` in a terminal and paste the token; it
+  uses your Claude subscription. Or set `ANTHROPIC_API_KEY` instead, billed to
+  an API account. Without either, conflicts are left for you.
+- **Secret `STARTER_SYNC_TOKEN`** (recommended): a
+  [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+  for the project repositories, with _Contents_, _Pull requests_ and
+  _Workflows_ set to read and write. Without it the workflow uses GitHub's
+  default token, which has two limits: CI doesn't run on the pull request it
+  opens (close and reopen it to start CI), and it can't push a change the
+  starter made to a workflow file (the run fails and says so; sync locally).
+  Clean syncs only merge themselves with it.
+- **Auto-merge:** run `scripts/setup-github.sh <owner/repo>` (needs `gh`,
+  signed in as an admin). It allows auto-merge and merge commits only, and
+  adds a ruleset on `main`: changes through a pull request, with CI's checks
+  and Playwright jobs passing. Safe to run again.
+
+And once, in the starter:
+
+- **Variable `STARTER_PROJECTS`** (Settings → Secrets and variables → Actions →
+  Variables): the projects to notify, separated by spaces
+  (`owner/acme-portal owner/other`). Add each new project.
+- **Secret `STARTER_SYNC_TOKEN`**: the same token, covering those projects.
+  Its _Contents_ permission is what lets the starter send them the event.
+- `scripts/setup-github.sh` for the starter too, so your own pull requests
+  into it merge themselves: `gh pr merge --auto --merge` on a pull request
+  (or ask Claude to turn it on).
+
+The workflow runs `yarn sync-from-starter` without `--from`, so it clones the
+starter over HTTPS: the starter repository must stay public, or the workflow
+needs a token that can read it.
+
+## Claude on GitHub
+
+`.github/workflows/claude-review.yml` reviews every pull request when it's
+opened or marked ready (not drafts, not Renovate's): bugs, `AGENTS.md`'s rules,
+and the starter and its projects. In the starter, it flags project-specific
+values written without the starter's names, which won't be adapted. In a
+project, it flags values that still belong to the starter. Findings come as
+inline comments, with a summary.
+
+`.github/workflows/claude.yml`, also synced to every project, lets you ask
+Claude for work from GitHub itself: mention `@claude` in an issue, a pull
+request comment or a review. For example, on a sync pull request:
+"@claude the e2e tests fail since this sync, fix them", or in an issue:
+"@claude implement this". "@claude review" asks for another review after new
+commits. It works on a branch and answers in the thread.
+Only people with write access to the repository can trigger it.
+
+Setup, once per repository: install the
+[Claude GitHub app](https://github.com/apps/claude) on it, and set the same
+`CLAUDE_CODE_OAUTH_TOKEN` (or `ANTHROPIC_API_KEY`) secret. Running
+`/install-github-app` in Claude Code in a terminal does both.
+
 ## Changing the starter so projects can follow
 
 - **Merge pull requests into the starter with a merge commit**, not squash or
   rebase. Projects record starter commits in `.starter.json`; a squash leaves
   the recorded commit off `main`, and the next sync can't find it.
+  `scripts/setup-github.sh` allows only merge commits.
+- What's merged into the starter reaches every project within minutes, and
+  merges there by itself when it applies cleanly. Merge only what's ready.
 - Use the starter's names (`@booking/*`, `booking-platform`, `booking-db`, …)
   in new files, as the existing ones do: `yarn sync-from-starter` and
   `yarn rename` replace them. A new kind of name needs a rule in
