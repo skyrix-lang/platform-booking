@@ -84,6 +84,12 @@ from the starter; `.starter.json` records the starter commit it started from.
   `yarn sync-from-starter --dry-run`, then `yarn sync-from-starter`. It merges
   what changed in the starter since the commit in `.starter.json` with the
   project's own changes, as `git merge` would. Review, `yarn verify`, commit.
+- **Automatically:** a workflow does that when the starter's `main` changes,
+  every Monday, or on demand from the Actions tab, and opens a pull request,
+  with Claude resolving conflicts. Clean syncs and Renovate's non-major
+  updates merge themselves once CI passes (`scripts/setup-github.sh`).
+  Claude also reviews every pull request, and `@claude` in an issue or pull
+  request asks it for any other work. All need a few secrets: see the guide.
 
 The whole process, conflicts and the rules for changing the starter:
 [docs/starter-sync.md](docs/starter-sync.md).
