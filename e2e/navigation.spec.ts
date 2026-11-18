@@ -1,44 +1,59 @@
-import { expect, test } from "./support";
+import {
+  bookPlatform,
+  createPlatform,
+  expect,
+  gotoDashboardFor,
+  gotoHydrated,
+  test,
+} from "./support";
 
-test.describe("home page", () => {
-  test("shows the hero, features and title", async ({ page }) => {
-    await page.goto("/");
+test.describe("theme", () => {
+  test("is dark by default, and the choice is remembered", async ({ page }) => {
+    await gotoHydrated(page, "/");
+    const html = page.locator("html");
+    await expect(html).toHaveClass(/\bdark\b/);
 
-    await expect(page).toHaveTitle("Platform Booking");
-    await expect(
-      page.getByRole("heading", { name: "Book with confidence" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Instant Confirmation" }),
-    ).toBeVisible();
+    await page.getByRole("button", { name: "Light mode" }).click();
+
+    await expect(html).not.toHaveClass(/\bdark\b/);
+    await page.reload();
+    await expect(html).not.toHaveClass(/\bdark\b/);
+    await page.getByRole("button", { name: "Dark mode" }).click();
+    await expect(html).toHaveClass(/\bdark\b/);
   });
+});
 
-  test("loads the logo", async ({ page }) => {
-    await page.goto("/");
+test("light mode is readable too", async ({ page }) => {
+  // Axe runs on the page each test ends on: this one ends in light mode, on
+  // a dashboard with a booking, so both themes' colours are checked.
+  const { id } = await createPlatform(page.request);
+  await bookPlatform(page.request, id);
+  await gotoDashboardFor(page, id);
 
-    const logo = page.getByRole("banner").locator('img[src="/logo.svg"]');
-    await expect(logo).toBeVisible();
-    await expect
-      .poll(() => logo.evaluate((img: HTMLImageElement) => img.naturalWidth))
-      .toBeGreaterThan(0);
-  });
+  await page.getByRole("button", { name: "Light mode" }).click();
 
-  test("links to the bookings", async ({ page }) => {
-    await page.goto("/");
-
-    await page.getByRole("link", { name: "View Bookings" }).click();
-
-    await expect(page).toHaveURL("/bookings");
-    await expect(page.getByRole("heading", { name: "Bookings" })).toBeVisible();
-  });
+  await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
 });
 
 test.describe("header", () => {
   test("desktop navigation", async ({ page, isMobile }) => {
     test.skip(isMobile, "the desktop navigation is hidden on mobile");
-    await page.goto("/");
+    await gotoHydrated(page, "/bookings");
     const menuButton = page.getByRole("button", { name: "Open menu" });
     await expect(menuButton).toBeHidden();
+
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: "Dashboard" })
+      .click();
+
+    await expect(page).toHaveURL("/");
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "Dashboard" }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Platforms",
+    );
 
     await page
       .getByRole("banner")
@@ -47,13 +62,13 @@ test.describe("header", () => {
 
     await expect(page).toHaveURL("/bookings");
     await expect(
-      page.getByRole("banner").getByRole("link", { name: "Bookings" }),
-    ).toHaveAttribute("aria-current", "page");
+      page.getByRole("heading", { name: "Active Bookings" }),
+    ).toBeVisible();
   });
 
   test("mobile menu", async ({ page, isMobile }) => {
     test.skip(!isMobile, "the mobile menu is hidden on desktop");
-    await page.goto("/");
+    await gotoHydrated(page, "/");
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: "Bookings" })).toBeHidden();
 

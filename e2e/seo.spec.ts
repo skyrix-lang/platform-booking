@@ -13,9 +13,11 @@ test.describe("home page", () => {
     expect(html).toContain("<title>Platform Booking</title>");
     expect(html).toContain(`<link rel="canonical" href="${baseURL}/" />`);
     expect(html).toMatch(
-      /<meta\s+name="description"\s+content="[^"]*manage your bookings/,
+      /<meta\s+name="description"\s+content="Book the team's test platforms/,
     );
-    expect(html).toContain('<meta property="og:title" content="Platform Booking" />');
+    expect(html).toContain(
+      '<meta property="og:title" content="Platform Booking" />',
+    );
     expect(html).toContain(`<meta property="og:url" content="${baseURL}/" />`);
     expect(html).not.toContain("%PUBLIC_URL%");
     expect(html).not.toContain('name="robots"');
@@ -43,18 +45,19 @@ test.describe("home page", () => {
 
     await expect(page.locator("h1")).toHaveCount(1);
     await expect(page.locator("h2")).not.toHaveCount(0);
-    await expect(page.locator("h3")).toHaveCount(0);
   });
 });
 
-test("the bookings page isn't indexed", async ({ page }) => {
-  await page.goto("/bookings");
+for (const path of ["/bookings", "/platforms"]) {
+  test(`${path} isn't indexed`, async ({ page }) => {
+    await page.goto(path);
 
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-    "content",
-    "noindex",
-  );
-});
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex",
+    );
+  });
+}
 
 test.describe("signed out", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -88,6 +91,7 @@ test("the sitemap lists public pages only", async ({ request, baseURL }) => {
   const sitemap = await response.text();
   expect(sitemap).toContain(`<loc>${baseURL}</loc>`);
   expect(sitemap).not.toContain("/bookings");
+  expect(sitemap).not.toContain("/platforms");
   expect(sitemap).not.toContain("/sign-in");
 });
 

@@ -9,7 +9,12 @@ import {
 } from "@playwright/test";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
-import type { Booking } from "@platform-booking/core";
+import {
+  addDays,
+  toISODate,
+  type Booking,
+  type Platform,
+} from "@platform-booking/core";
 import { createLocalSession, storageState } from "../scripts/local-session";
 
 /**
@@ -56,6 +61,14 @@ export const test = base.extend<{
       await use();
       if (testInfo.status !== testInfo.expectedStatus) return;
       if (!page.url().startsWith(baseURL!)) return;
+      // Colours are only final once fades end, such as a card that a live
+      // update brings in, which can happen while axe runs: reduced motion
+      // turns the fades off (motion-safe:), then the running ones finish.
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.evaluate(() =>
+        // A cancelled animation rejects: it's over all the same.
+        Promise.allSettled(document.getAnimations().map((a) => a.finished)),
+      );
       const { violations } = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
         .analyze();
@@ -77,21 +90,35 @@ function randomIp() {
   return `198.${18 + (a % 2)}.${b}.${c}`;
 }
 
+/** A platform id no other test uses. */
+export function uniquePlatformId() {
+  return `e2e-${randomUUID().slice(0, 8)}`;
+}
+
+/** Three random capital letters. */
+export function randomTrigram() {
+  return Array.from(randomBytes(3), (byte) =>
+    String.fromCharCode(65 + (byte % 26)),
+  ).join("");
+}
+
+/** A day `days` from today, as the server and the browser count it. */
+export function dayFromToday(days: number) {
+  return addDays(toISODate(new Date()), days);
+}
+
 /**
  * Tests run in parallel against one database, so a test that changes data
- * creates its own booking, with a unique title, and leaves the seed data alone.
+ * creates its own platform, with a unique id, and leaves the seed data alone.
  */
-export async function createBooking(
+export async function createPlatform(
   request: APIRequestContext,
-  overrides: Partial<Booking> = {},
-): Promise<Booking> {
-  const response = await request.post("/api/bookings", {
+  overrides: Partial<Platform> = {},
+): Promise<Platform> {
+  const response = await request.post("/api/platforms", {
     data: {
-      title: `E2E ${randomUUID()}`,
+      id: uniquePlatformId(),
       description: "Created by a test",
-      date: "2030-01-15",
-      time: "10:30",
-      duration: 30,
       ...overrides,
     },
   });
@@ -99,15 +126,16 @@ export async function createBooking(
   return response.json();
 }
 
-export async function setBookingStatus(
+export async function bookPlatform(
   request: APIRequestContext,
-  id: string,
-  status: Booking["status"],
-) {
-  const response = await request.patch(`/api/bookings/${id}`, {
-    data: { status },
+  platformId: string,
+  { trigram = randomTrigram(), endDate = dayFromToday(2) } = {},
+): Promise<Booking> {
+  const response = await request.post("/api/bookings", {
+    data: { platformId, trigram, endDate },
   });
-  expect(response.ok()).toBe(true);
+  expect(response.status()).toBe(201);
+  return response.json();
 }
 
 async function withDatabase<T>(run: (db: Client) => Promise<T>) {
@@ -120,10 +148,21 @@ async function withDatabase<T>(run: (db: Client) => Promise<T>) {
   }
 }
 
-/** Removes a row directly: the app has no delete, and this mimics another user. */
-export async function deleteBookingFromDatabase(id: string) {
+/**
+ * Writes a booking straight to the database, such as one whose end date has
+ * passed, which the API can't create.
+ */
+export async function insertBooking(booking: {
+  platformId: string;
+  trigram: string;
+  startDate: string;
+  endDate: string;
+}) {
   await withDatabase((db) =>
-    db.query("DELETE FROM bookings WHERE id = $1", [id]),
+    db.query(
+      "INSERT INTO bookings (platform_id, trigram, start_date, end_date) VALUES ($1, $2, $3, $4)",
+      [booking.platformId, booking.trigram, booking.startDate, booking.endDate],
+    ),
   );
 }
 
@@ -169,10 +208,20 @@ export async function gotoHydrated(page: Page, url: string) {
   await expect(page.getByRole("banner")).toBeVisible();
 }
 
-export function bookingCard(page: Page, title: string) {
-  return page
-    .getByTestId("booking-card")
-    .filter({ has: page.getByRole("heading", { name: title, exact: true }) });
+/** A platform's card on the dashboard. */
+export function platformCard(page: Page, platformId: string) {
+  return page.getByTestId("platform-card").filter({
+    has: page.getByRole("heading", {
+      name: platformId.toUpperCase(),
+      exact: true,
+    }),
+  });
+}
+
+/** The dashboard, searched down to the platform `platformId`. */
+export async function gotoDashboardFor(page: Page, platformId: string) {
+  await gotoHydrated(page, `/?q=${platformId}`);
+  await expect(platformCard(page, platformId)).toBeVisible();
 }
 
 export function uniqueEmail(domain = "example.test") {
@@ -196,17 +245,21 @@ export const KEYCLOAK_USERS = {
   },
 } as const;
 
-/** A user created ahead of their first sign-in: an email, no identity, one booking. */
-export async function createUserWithBooking(email: string, title: string) {
-  await withDatabase(async (db) => {
-    const { rows } = await db.query<{ id: string }>(
-      "INSERT INTO users (email) VALUES ($1) RETURNING id",
+/** A user created ahead of their first sign-in: an email, no identity yet. */
+export async function createUser(email: string) {
+  await withDatabase((db) =>
+    db.query("INSERT INTO users (email) VALUES ($1)", [email]),
+  );
+}
+
+/** The users with this email, and whether each is linked to an identity. */
+export async function usersWithEmail(email: string) {
+  return withDatabase(async (db) => {
+    const { rows } = await db.query<{ linked: boolean }>(
+      "SELECT oidc_subject IS NOT NULL AS linked FROM users WHERE email = $1",
       [email],
     );
-    await db.query(
-      "INSERT INTO bookings (user_id, title, date, time, duration) VALUES ($1, $2, '2030-05-01', '10:00', 30)",
-      [rows[0]!.id, title],
-    );
+    return rows;
   });
 }
 

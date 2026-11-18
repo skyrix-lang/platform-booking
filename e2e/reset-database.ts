@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
 import { users } from "@platform-booking/db";
-import { seedBookings } from "@platform-booking/db/seed";
+import { seedPlatforms } from "@platform-booking/db/seed";
 import { SHARED_USER_EMAIL } from "./auth-state";
 
 // Recreates the test database, so every run starts from the same state.
@@ -23,11 +23,10 @@ async function main() {
 
   const db = drizzle(url.href);
   await migrate(db, { migrationsFolder: "packages/db/drizzle" });
-  const [user] = await db
-    .insert(users)
-    .values({ email: SHARED_USER_EMAIL })
-    .returning();
-  await seedBookings(db, user!.id);
+  // The signed-in user the tests share (sign-in still works, though the site
+  // doesn't need it), and the default platforms, which tests only read.
+  await db.insert(users).values({ email: SHARED_USER_EMAIL });
+  await seedPlatforms(db);
   await db.$client.end();
 }
 
