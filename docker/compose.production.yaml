@@ -1,0 +1,66 @@
+# Production: Postgres, the migrations, then the app, in place of the previous
+# single container. See "Deploy" in the README.
+#
+#   export PUBLIC_URL=https://booking.example.com POSTGRES_PASSWORD=... TZ=Europe/Paris
+#   docker compose -f docker/compose.production.yaml up -d --build
+#
+# The app answers on port 80 (APP_PORT) like the previous image, as plain HTTP:
+# put it behind your HTTPS proxy, which sets X-Forwarded-For. PUBLIC_URL must
+# be the https address people use. Nobody signs in, as before; set OIDC_* (and
+# SESSION_SECRET) only to turn sign-in on.
+name: platform-booking
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: platform_booking
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: platform_booking
+    volumes:
+      - db:/var/lib/postgresql
+    healthcheck:
+      test:
+        ["CMD", "pg_isready", "-q", "-h", "127.0.0.1", "-U", "platform_booking"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Applies the migrations, adds the default platforms to an empty database,
+  # then exits. The app starts only when it succeeded. Also runs the one-off
+  # import of the previous version's data (README, "Deploy").
+  migrate:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: migrate
+    environment:
+      DATABASE_URL: postgres://platform_booking:${POSTGRES_PASSWORD}@db:5432/platform_booking
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: runner
+    restart: unless-stopped
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL to the https address of the site}
+      DATABASE_URL: postgres://platform_booking:${POSTGRES_PASSWORD}@db:5432/platform_booking
+      # "Today", for booking end dates and expiry, is the server's day: set it
+      # to the team's zone (Europe/Paris), or bookings end at UTC midnight
+      # while the browser's calendar says otherwise.
+      TZ: ${TZ:?set TZ to the team's time zone, such as Europe/Paris}
+    ports:
+      - "${APP_PORT:-80}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    # Time for in-flight requests to finish after SIGTERM (apps/bff/src/server.ts).
+    stop_grace_period: 15s
+
+volumes:
+  db:

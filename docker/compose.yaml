@@ -1,11 +1,11 @@
 # The production image on your machine, with everything it needs:
 #
-#   yarn docker:up        then http://localhost:8080, sign in as ada / ada
+#   yarn docker:up        then http://localhost:8080
 #
 # It shows the deploy order (database, then migrations, then the app) and is a
 # way to try the real image before shipping it. For local use only: the
-# passwords and the session secret below are public, and Keycloak runs in
-# development mode with the test realm. Day-to-day work uses `yarn dev` instead.
+# password below is public. Production uses compose.production.yaml, and
+# day-to-day work uses `yarn dev`.
 name: platform-booking
 
 services:
@@ -18,12 +18,14 @@ services:
     volumes:
       - db:/var/lib/postgresql
     healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-h", "127.0.0.1", "-U", "platform_booking"]
+      test:
+        ["CMD", "pg_isready", "-q", "-h", "127.0.0.1", "-U", "platform_booking"]
       interval: 2s
       timeout: 3s
       retries: 30
 
-  # Applies the migrations and exits. The app starts only when it succeeded.
+  # Applies the migrations, adds the default platforms to an empty database,
+  # and exits. The app starts only when it succeeded.
   migrate:
     build:
       context: ..
@@ -35,32 +37,6 @@ services:
       db:
         condition: service_healthy
 
-  # The browser and the app must reach the identity provider at the same
-  # address, since that address is the issuer. `keycloak.localhost` is this
-  # machine for a browser and this container for the app, on the same port.
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.8
-    command: start-dev --import-realm --http-port=8280
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import:ro
-    ports:
-      - "8280:8280"
-    networks:
-      default:
-        aliases: [keycloak.localhost]
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "exec 3<>/dev/tcp/127.0.0.1/8280 && printf 'GET /realms/platform-booking HTTP/1.1\\r\\nHost: keycloak.localhost:8280\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3",
-        ]
-      interval: 3s
-      timeout: 3s
-      retries: 40
-
   app:
     build:
       context: ..
@@ -69,17 +45,11 @@ services:
     environment:
       PUBLIC_URL: http://localhost:${APP_PORT:-8080}
       DATABASE_URL: postgres://platform_booking:platform_booking@db:5432/platform_booking
-      SESSION_SECRET: local-compose-only-not-a-secret-0123456789
-      OIDC_ISSUER: http://keycloak.localhost:8280/realms/platform-booking
-      OIDC_CLIENT_ID: platform-booking-web
-      OIDC_CLIENT_SECRET: platform-booking-web-dev-secret
     ports:
       - "${APP_PORT:-8080}:3000"
     depends_on:
       migrate:
         condition: service_completed_successfully
-      keycloak:
-        condition: service_healthy
     # Time for in-flight requests to finish after SIGTERM (apps/bff/src/server.ts).
     stop_grace_period: 15s
 
