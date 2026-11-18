@@ -13,8 +13,12 @@ const ALLOWED: Record<string, string[]> = {
   "@platform-booking/db": ["@platform-booking/core"],
   "@platform-booking/api": [],
   "@platform-booking/ui": [],
-  "@platform-booking/theme-default": [],
-  "@platform-booking/feature-*": ["@platform-booking/core", "@platform-booking/api", "@platform-booking/ui"],
+  "@platform-booking/theme-*": [],
+  "@platform-booking/feature-*": [
+    "@platform-booking/core",
+    "@platform-booking/api",
+    "@platform-booking/ui",
+  ],
   "@platform-booking/web": [
     "@platform-booking/core",
     "@platform-booking/api",

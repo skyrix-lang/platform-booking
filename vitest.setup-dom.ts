@@ -3,8 +3,10 @@ import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "@platform-booking/api/test-server";
 
-// jsdom has no scrolling; the router restores scroll positions.
+// jsdom has no scrolling; the router restores scroll positions, and pages
+// scroll a form into view.
 window.scrollTo = () => {};
+Element.prototype.scrollIntoView = () => {};
 
 // Component tests talk to MSW, never to a real server: an unhandled request
 // fails the test.
