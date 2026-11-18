@@ -7,9 +7,18 @@ import { defineConfig } from "drizzle-kit";
 const envFile = fileURLToPath(new URL("../../.env", import.meta.url));
 if (existsSync(envFile)) process.loadEnvFile(envFile);
 
+// drizzle-kit only prints "Invalid URL" for a URL it can't read, such as one
+// whose password has a "/" in it (openssl rand -base64 makes those).
+const url = process.env.DATABASE_URL;
+if (!url || !URL.canParse(url)) {
+  throw new Error(
+    "DATABASE_URL is missing or isn't a valid URL. A password in it must be URL-safe: use letters and digits, such as `openssl rand -hex 24`.",
+  );
+}
+
 export default defineConfig({
   dialect: "postgresql",
   schema: "./src/schema.ts",
   out: "./drizzle",
-  dbCredentials: { url: process.env.DATABASE_URL! },
+  dbCredentials: { url },
 });

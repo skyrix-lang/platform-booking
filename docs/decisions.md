@@ -228,8 +228,10 @@ deploy order, with public passwords: for trying the image locally.
 single container: Postgres in a volume, the `migrate` service (migrations,
 then the default platforms when the table is empty; also the one-off import),
 then the app on port 80 behind the existing HTTPS proxy. It takes
-`PUBLIC_URL` and `POSTGRES_PASSWORD` from the environment and refuses to start
-without them.
+`PUBLIC_URL`, `POSTGRES_PASSWORD` and `TZ` from `docker/.env` (or the
+environment) and refuses to start without them. The password goes into
+`DATABASE_URL` unencoded, so it is letters and digits (`openssl rand -hex`):
+a base64 one broke the migration in the rehearsal of the switch.
 **Why:** the previous version was deployed by hand as one container; keeping
 one command on one machine is the smallest change. `PUBLIC_URL` must stay
 https: the security headers (HSTS, `__Host-` cookies) assume it.
