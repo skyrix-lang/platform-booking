@@ -8,6 +8,20 @@
       "when": 1794351244310,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794993828600,
+      "tag": "0001_drop_starter_bookings",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794993839451,
+      "tag": "0002_platform_booking",
+      "breakpoints": true
     }
   ]
 }

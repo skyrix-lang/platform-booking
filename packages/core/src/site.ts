@@ -3,7 +3,7 @@
 export const site = {
   name: "Platform Booking",
   description:
-    "The simplest way to manage your bookings. Schedule, track, and organize all your appointments in one place.",
+    "Book the team's test platforms: see which are free, who is on each and until when, and release them when you're done.",
 };
 
 /** Pages that should rank: listed in the sitemap. App pages aren't. */

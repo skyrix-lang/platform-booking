@@ -1,34 +1,19 @@
-import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { users } from "@platform-booking/db";
-import { seedBookings } from "@platform-booking/db/seed";
+import { seedPlatforms } from "@platform-booking/db/seed";
 import { loadEnv } from "./env";
 
-// yarn db:seed <email>: gives that user the demo bookings. They must have signed
-// in once, so the user exists and is linked to their identity.
+// yarn db:seed: adds the default platforms when the database has none. Safe to
+// run on every deploy, after the migrations: an existing list is left alone.
 async function main() {
-  const email = process.argv[2]?.trim().toLowerCase();
-  if (!email) {
-    console.error("Usage: yarn db:seed <email of a user who has signed in>");
-    process.exit(1);
-  }
-
   loadEnv();
   const db = drizzle(process.env.DATABASE_URL!);
   try {
-    const [user] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.email, email));
-    if (!user) {
-      console.error(
-        `No user ${email}: sign in once with it, then run this again.`,
-      );
-      process.exitCode = 1;
-      return;
-    }
-    await seedBookings(db, user.id);
-    console.log(`Demo bookings added for ${email}.`);
+    const added = await seedPlatforms(db);
+    console.log(
+      added
+        ? `Added the ${added} default platforms.`
+        : "Platforms already exist: nothing added.",
+    );
   } finally {
     await db.$client.end();
   }

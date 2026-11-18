@@ -1,57 +1,71 @@
 import {
-  customType,
+  boolean,
   date,
   index,
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { BOOKING_STATUSES } from "@platform-booking/core";
+import { HISTORY_REASONS } from "@platform-booking/core";
 
-export const bookingStatus = pgEnum("booking_status", BOOKING_STATUSES);
-
-// Postgres returns "09:00:00"; the app works with "09:00".
-const timeOfDay = customType<{ data: string; driverData: string }>({
-  dataType: () => "time(0)",
-  fromDriver: (value) => value.slice(0, 5),
+// The team's test platforms. Shared by everyone: the site has no sign-in, as
+// before the migration (docs/decisions.md, "Open access, shared data").
+export const platforms = pgTable("platforms", {
+  id: text().primaryKey(),
+  description: text().notNull().default(""),
+  kubernetes: boolean().notNull().default(false),
+  // Redeployed every night: bookable for the current day only.
+  nightly: boolean().notNull().default(false),
 });
 
-// Each booking belongs to the user who created it, and only they can see or
-// change it (apps/bff/src/bookings.ts).
+// Who is on a platform, until when. Several people can share a platform, each
+// once: the key is the platform and the person's trigram. A booking whose end
+// date has passed moves to the history (apps/bff/src/bookings.ts).
 export const bookings = pgTable(
   "bookings",
   {
-    id: uuid().primaryKey().defaultRandom(),
-    userId: uuid("user_id")
+    platformId: text("platform_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    title: text().notNull(),
-    description: text().notNull().default(""),
-    date: date({ mode: "string" }).notNull(),
-    time: timeOfDay().notNull(),
-    duration: integer().notNull(),
-    status: bookingStatus().notNull().default("pending"),
-    createdAt: timestamp("created_at", { withTimezone: true })
+      .references(() => platforms.id, { onDelete: "cascade" }),
+    trigram: text().notNull(),
+    startDate: date("start_date", { mode: "string" }).notNull(),
+    endDate: date("end_date", { mode: "string" }).notNull(),
+    bookedAt: timestamp("booked_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    // Set by Drizzle on every update made through it, not by the database.
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date()),
   },
-  // Serves the list: one user's bookings, in date order.
   (booking) => [
-    index("bookings_user_id_date_time_idx").on(
-      booking.userId,
-      booking.date,
-      booking.time,
-    ),
+    primaryKey({ columns: [booking.platformId, booking.trigram] }),
+    // Finds the expired bookings on every read.
+    index("bookings_end_date_idx").on(booking.endDate),
   ],
+);
+
+export const historyReason = pgEnum("history_reason", HISTORY_REASONS);
+
+// Bookings that ended, released or expired. No foreign key: the history keeps
+// the bookings of platforms deleted since.
+export const bookingHistory = pgTable(
+  "booking_history",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    platformId: text("platform_id").notNull(),
+    trigram: text().notNull(),
+    startDate: date("start_date", { mode: "string" }).notNull(),
+    endDate: date("end_date", { mode: "string" }).notNull(),
+    bookedAt: timestamp("booked_at", { withTimezone: true }).notNull(),
+    releasedAt: timestamp("released_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    reason: historyReason().notNull(),
+  },
+  // Serves the history page: the last weeks, newest first.
+  (entry) => [index("booking_history_released_at_idx").on(entry.releasedAt)],
 );
 
 // Fixed-window counters for apps/bff/src/rate-limit.ts, such as sign-in emails per

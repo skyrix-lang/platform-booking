@@ -1,7 +1,7 @@
 {
   "name": "platform-booking",
   "version": "1.0.0",
-  "description": "Booking platform starter: React SPA + Hono BFF",
+  "description": "Book the team's test platforms: React SPA + Hono BFF + Postgres",
   "private": true,
   "packageManager": "yarn@4.18.1",
   "devDependencies": {
@@ -56,6 +56,7 @@
     "db:migrate": "yarn workspace @platform-booking/db drizzle-kit migrate",
     "db:studio": "yarn workspace @platform-booking/db drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
+    "db:import-sqlite": "tsx scripts/import-sqlite.ts",
     "docker:build": "docker build -t $npm_package_name:$npm_package_version -f docker/Dockerfile .",
     "docker:up": "docker compose -f docker/compose.yaml up --build",
     "docker:down": "docker compose -f docker/compose.yaml down"
