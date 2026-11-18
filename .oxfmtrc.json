@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "useTabs": false,
+  "tabWidth": 2,
+  "printWidth": 80,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "packages/db/drizzle/meta",
+    "packages/api/src/generated",
+    "packages/api/openapi.json",
+    "**/routeTree.gen.ts",
+    "**/dist"
+  ]
+}

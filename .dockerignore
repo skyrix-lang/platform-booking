@@ -1,0 +1,15 @@
+.git
+.claude
+.idea
+.yarn/cache
+.yarn/install-state.gz
+**/node_modules
+**/dist
+e2e
+playwright.config.ts
+test-results
+playwright-report
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
