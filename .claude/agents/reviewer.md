@@ -17,12 +17,12 @@ rules you check against.
 
 ## Check, in this order
 
-1. **Access.** Every new API route is on `userApi` (session checked, 401) unless
-   it's deliberately public, and says why. Per-user data: every data function in
-   `apps/bff` takes the user's id and filters by it, including updates and
-   deletes, and nothing returns the owner column. Try to reach another user's
-   row through each new path. App routes in `apps/web` call `requireUser`, but
-   that is only UX: the BFF check is the one that counts.
+1. **Access.** The site is open and the data shared, by decision
+   (`docs/decisions.md`): routes are on `publicApi`. Check that nothing new
+   assumes a signed-in user, and that a change to shared data calls
+   `broadcast()`. If a route is meant to need a session, it must check it in
+   the BFF (401), and per-user data functions take the user's id and filter by
+   it, including updates and deletes.
 2. **Input.** Everything from outside (JSON bodies, params, query, search
    params) goes through Zod. Bad input gives 400, not a 500. Anything that sends
    email or costs money is rate limited. No secret, token or provider call
@@ -42,7 +42,7 @@ rules you check against.
    components have Vitest tests with MSW handlers, and new pure logic has a unit
    test. Tests that change data create their own rows. No test-only code in the
    app. Ask: would these tests fail if the feature broke?
-7. **Fit.** It follows the bookings feature rather than inventing a new
+7. **Fit.** It follows the platforms feature rather than inventing a new
    pattern, adds no dependency the rules say to ask about, and doesn't reverse a
    recorded decision. README updated for new commands, variables or concepts.
 
