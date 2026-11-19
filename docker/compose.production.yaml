@@ -1,5 +1,5 @@
 # Production: Postgres, the migrations, then the app, in place of the previous
-# single container. See "Deploy" in the README.
+# single container. See "Deploy" in docs/deployment.md.
 #
 #   cp docker/.env.example docker/.env   # then fill it in
 #   docker compose -f docker/compose.production.yaml up -d --build
@@ -29,7 +29,7 @@ services:
 
   # Applies the migrations, adds the default platforms to an empty database,
   # then exits. The app starts only when it succeeded. Also runs the one-off
-  # import of the previous version's data (README, "Deploy").
+  # import of the previous version's data (docs/deployment.md, "Deploy").
   migrate:
     build:
       context: ..
@@ -54,7 +54,7 @@ services:
       # to the team's zone (Europe/Paris), or bookings end at UTC midnight
       # while the browser's calendar says otherwise.
       TZ: ${TZ:?set TZ to the team's time zone, such as Europe/Paris}
-      # Google Analytics (README, "Analytics"): empty, as by default, means off.
+      # Google Analytics (docs/seo-and-analytics.md, "Analytics"): empty, as by default, means off.
       GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
     ports:
       - "${APP_PORT:-80}:3000"

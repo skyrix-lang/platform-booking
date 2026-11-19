@@ -1,19 +1,107 @@
 # Deployment
 
-The Docker image, deploying it to a server, backups and logs.
+Deploying this version in place of the previous one, the Docker image, later deploys, backups and logs.
 
-## Docker
+## Deploy
+
+This version runs as three services, `docker/compose.production.yaml`:
+Postgres, a migration step, and the app. The app answers on port 80, as
+before, so your HTTPS proxy keeps pointing at the same place. The app
+speaks plain HTTP: keep it behind that proxy, which must set
+`X-Forwarded-For`.
+
+## Settings: `docker/.env`
+
+On the server, in this repository:
 
 ```bash
-yarn docker:build
-# Apply migrations (a deploy step, never at startup), then start the app
-docker build --target migrate -t platform-booking-migrate -f docker/Dockerfile .
-docker run --rm -e DATABASE_URL=... platform-booking-migrate
-docker run -p 3000:3000 -e PUBLIC_URL=https://bookings.example.com \
-  -e DATABASE_URL=... -e SESSION_SECRET=... \
-  -e OIDC_ISSUER=... -e OIDC_CLIENT_ID=... -e OIDC_CLIENT_SECRET=... \
-  platform-booking:1.0.0
+cp docker/.env.example docker/.env
+chmod 600 docker/.env
+openssl rand -hex 24   # paste it as POSTGRES_PASSWORD
 ```
+
+Then fill in `docker/.env`. It needs only three values:
+
+| Setting             | What to put                                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `PUBLIC_URL`        | the https address people type, such as `https://booking.example.com`                                      |
+| `POSTGRES_PASSWORD` | a new password, letters and digits only (the `openssl` output). Keep it: the database keeps the first one |
+| `TZ`                | the team's time zone, such as `Europe/Paris`: a booking ends at midnight there                            |
+
+Compared with the previous version's `.env`:
+
+| Before                                 | Now                                                   |
+| -------------------------------------- | ----------------------------------------------------- |
+| `CORS_ORIGINS`                         | `PUBLIC_URL`                                          |
+| `FRONTEND_PORT=80`                     | `APP_PORT`, 80 by default: leave it out               |
+| `DB_PATH`                              | gone: the data moves to Postgres, `POSTGRES_PASSWORD` |
+| `VITE_API_URL`, `BACKEND_PORT`, `HOST` | gone: one container serves the site and the API       |
+| (none)                                 | `TZ`                                                  |
+
+Nothing else: sign-in stays off, as before. Compose reads `docker/.env` for
+every `docker compose -f docker/compose.production.yaml` command; git and
+image builds ignore it.
+
+## Replace the previous container
+
+Find the old container and its data volume: `docker ps` and
+`docker volume ls`. With the old README's `docker run`, the volume is
+`booking-data`; with its compose file, there are two containers (`frontend`
+and `backend`) and the volume is `<folder>_backend-data`. Replace
+`<old container>` and `booking-data` below with yours.
+
+Run the steps one by one, and go on only when one succeeds:
+
+```bash
+docker compose -f docker/compose.production.yaml build
+
+# 1. The database, the migrations and the default platforms.
+docker compose -f docker/compose.production.yaml run --rm migrate
+
+# 2. Stop the previous container (both, with its compose file), so nothing
+#    changes during the copy, then import its data (platforms, active
+#    bookings, history) from its volume.
+docker stop <old container>
+docker compose -f docker/compose.production.yaml run --rm \
+  -v booking-data:/legacy:ro migrate yarn db:import-sqlite /legacy/booking.db
+
+# 3. Start the app on port 80 in its place.
+docker compose -f docker/compose.production.yaml up -d
+docker compose -f docker/compose.production.yaml ps   # app: "healthy"
+```
+
+The import opens the old file read-only and prints what it copied, and what it
+skipped and why (a row with an invalid date, a duplicate). It reads the
+file's write-ahead log too, so the last bookings made before the stop are
+there. Bookings of a platform that no longer exists go to the history as
+released. It refuses to run when Postgres already holds bookings or history,
+so it can't duplicate anything. When the old file has a platforms table (any
+version that could edit platforms), its list replaces the default one;
+otherwise the defaults stay. A platform id the new site can't use in a URL
+(with a slash or a space) is skipped, and its bookings go to the history; so
+is an active booking whose trigram isn't three letters.
+
+## Going back
+
+Keep the stopped old container and its volume until you've checked the new
+site: never `docker compose down -v` in the old version's folder, which
+deletes the volume. To go back, `docker compose -f
+docker/compose.production.yaml stop app` and `docker start <old container>`:
+the old data is as it was at the stop, and changes made on the new site since
+are not in it. Once you're sure, `docker rm` the old container, and remove
+its volume when you no longer want it as a backup.
+
+## Later deploys
+
+`git pull`, then
+`docker compose -f docker/compose.production.yaml up -d --build`: the
+`migrate` service applies new migrations before the app starts, and adds the
+default platforms only to an empty table.
+
+## The image
+
+`yarn docker:build` builds the app image alone, and its `migrate` stage
+(`--target migrate`) is the migration step.
 
 The runtime image holds Node, a single bundled `server.js` and the static
 files: no `node_modules`, no package manager, and it runs as a non-root user.
@@ -21,24 +109,29 @@ Its base image is pinned by digest, and Renovate updates it. The image has a
 `HEALTHCHECK` on `GET /api/health` (503 when the database is unreachable), and
 on `SIGTERM` the server finishes the requests in progress before it exits.
 
-To try the image with everything around it, `yarn docker:up` runs
-`docker/compose.yaml`: Postgres, the migrations, a development Keycloak and
-the app at http://localhost:8080 (ada / ada). It's for local use only, and
-needs a browser that treats `keycloak.localhost` as this machine (Chrome and
-Firefox do; Safari needs a line in `/etc/hosts`).
+To try the image locally, `yarn docker:up` runs `docker/compose.yaml`:
+Postgres, the migrations and the app at http://localhost:8080. Its password is
+public: it isn't a deployment.
 
 ## Deploying
 
 Off until a project turns it on: the starter ships the scripts, and nothing
 deploys anywhere until you run `yarn deploy` or set the Deploy workflow's
-`DEPLOY_SSH` variable. [auto-deploy.md](auto-deploy.md) is the
+`DEPLOY_SSH` variable. [docs/auto-deploy.md](auto-deploy.md) is the
 step-by-step setup (Claude can follow it).
 
-`docker/compose.production.yaml` runs the image on a server (a VPS with
-Docker) behind an [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy)
-with its Let's Encrypt companion, on the proxy's `nginx-proxy` network, which
-also reaches a shared Postgres as `postgres`. The app must be served over
-https.
+> **Not wired up in this project yet.** The scripts below come from the
+> starter and expect an [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy)
+> setup with a shared Postgres on its `nginx-proxy` network. This project's
+> `docker/compose.production.yaml` is the self-contained stack described in
+> [Deploy](#deploy) (its own Postgres, port 80), so `yarn deploy` and the
+> nightly workflow won't work with it as is. Adapting them is a decision to
+> take before setting `DEPLOY_SSH`.
+
+The starter's `docker/compose.production.yaml` runs the image on a server (a
+VPS with Docker) behind an nginx-proxy with its Let's Encrypt companion, on the
+proxy's `nginx-proxy` network, which also reaches a shared Postgres as
+`postgres`. The app must be served over https.
 
 One-time setup on the server, in the deploy folder (`apps/platform-booking`
 in the deploy user's home by default; `DEPLOY_DIR` changes it):
@@ -52,7 +145,7 @@ in the deploy user's home by default; `DEPLOY_DIR` changes it):
    mkdir -p ~/apps/platform-booking && install -m 600 /dev/null ~/apps/platform-booking/.env.production && nano ~/apps/platform-booking/.env.production
    ```
 
-3. `backup.env`, for the backups (see [Backups](#backups)): no deploy runs
+3. `backup.env`, for the backups (see "Backups" below): no deploy runs
    without it.
 
 Then, for each release, from a checkout of the commit to ship:
@@ -147,7 +240,7 @@ and otherwise backs the database up. **Run workflow** in the Actions tab
 deploys `main` at once. It does nothing, in the starter and in any project,
 until the `DEPLOY_SSH` repository variable is set. Turning it on (a deploy
 key, the `production` environment, two secrets and a variable):
-[auto-deploy.md](auto-deploy.md).
+[docs/auto-deploy.md](auto-deploy.md).
 
 ## Logs
 
@@ -160,5 +253,6 @@ added to everything logged while handling it; a proxy that sends
 and stack only: query parameters and whatever a library attached to them are
 dropped. Log with `log` from `apps/bff/src/log.ts`; lint refuses `console`.
 
-CI builds the image on `main` and on tags, with an SBOM and build provenance,
-and signs release tags with cosign. See `SECURITY.md`.
+CI builds the image on `main` and on tags and pushes it to the GitHub container
+registry, with an SBOM and build provenance, and signs release tags with
+cosign. See `SECURITY.md`. Nothing deploys it: running it is up to you.

@@ -9,26 +9,29 @@ The BFF reads its settings from the environment when it starts
 every problem. Nothing is baked in at build time, so one image serves any
 customer and any domain.
 
-| Variable                                               | Meaning                                                                                                |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `PUBLIC_URL`                                           | the address people use; used for the OIDC callback, the CSRF check, the canonical URL and the sitemap  |
-| `DATABASE_URL`                                         | Postgres                                                                                               |
-| `TZ`                                                   | the time zone that decides "today", for end dates and expiry; required by the production compose file  |
-| `SESSION_SECRET`                                       | signs the short-lived sign-in cookie (32+ random characters in production)                             |
-| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`  | the identity provider and its confidential client                                                      |
-| `PORT`, `HOST`                                         | where the BFF listens (3000 and 0.0.0.0 in the image)                                                  |
-| `LOG_LEVEL`                                            | `debug`, `info` (default), `warn`, `error` or `silent`                                                 |
-| `STATIC_DIR`                                           | the built SPA (set in the image)                                                                       |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | the SMTP server mail goes through; unset, mail is only logged (see [Mail](#mail))                      |
-| `MAIL_FROM`                                            | the sender, on a domain the SMTP server may send for                                                   |
-| `GA_MEASUREMENT_ID`                                    | Google Analytics 4's id (`G-…`); unset, no analytics (see [Analytics](seo-and-analytics.md#analytics)) |
+| Variable                                               | Meaning                                                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `PUBLIC_URL`                                           | the address people use, https in production; used for the CSRF check, the canonical URL and the sitemap |
+| `DATABASE_URL`                                         | Postgres                                                                                                |
+| `TZ`                                                   | the time zone that decides "today", for end dates and expiry; required by the production compose file   |
+| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`  | optional: the identity provider and its confidential client. Unset, nobody signs in                     |
+| `SESSION_SECRET`                                       | with `OIDC_*` only: signs the short-lived sign-in cookie (32+ random characters in production)          |
+| `PORT`, `HOST`                                         | where the BFF listens (3000 and 0.0.0.0 in the image)                                                   |
+| `LOG_LEVEL`                                            | `debug`, `info` (default), `warn`, `error` or `silent`                                                  |
+| `STATIC_DIR`                                           | the built SPA (set in the image)                                                                        |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | the SMTP server mail goes through; unset, mail is only logged (see [Mail](#mail))                       |
+| `MAIL_FROM`                                            | the sender, on a domain the SMTP server may send for                                                    |
+| `GA_MEASUREMENT_ID`                                    | Google Analytics 4's id (`G-…`); unset, no analytics (see [Analytics](seo-and-analytics.md#analytics))  |
 
 ## Authentication
 
-The site is open: no page and no API route needs a session, and sign-in is
-optional (see "Open access, shared data" in [decisions](decisions.md)). It is
-off unless `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` and
-`SESSION_SECRET` are all set; without them `/auth/*` doesn't exist.
+The site is open: no page and no API route needs a session, as in the previous
+version. Sign-in is optional and off unless `OIDC_ISSUER`, `OIDC_CLIENT_ID`,
+`OIDC_CLIENT_SECRET` and `SESSION_SECRET` are set (setting one `OIDC_*`
+without the others stops the server with an error); without them `/auth/*`
+doesn't exist. It is kept so that restricting the site later is a matter of
+configuration plus routes that check the session (the comment at the top of
+`apps/bff/src/routes/api.ts` says how).
 
 Any OpenID Connect provider works: Keycloak, Entra ID, Auth0, Google and
 others. Create a **confidential** client with:

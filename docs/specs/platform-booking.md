@@ -55,7 +55,7 @@ previous version's SQLite file (platforms, bookings, history) once.
 ## Pages and API
 
 `/` is public, as before (indexed, the one path in the sitemap); `/bookings`
-and `/platforms` are app pages with `noindex`. API: see the README's API table. Status codes: 400 bad
+and `/platforms` are app pages with `noindex`. API: see the API table in docs/architecture.md. Status codes: 400 bad
 input or broken rule (end date in the past, nightly past today), 404 unknown
 platform or booking, 409 duplicate platform id or trigram already on the
 platform.

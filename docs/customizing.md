@@ -1,17 +1,17 @@
 # Customizing for a customer
 
-What to change to make the starter a customer's site: brand, languages, icons, pages and features.
+What makes this the team's site: brand, dark mode, icons, pages and features.
 
-- **Branding:** copy `packages/theme-default` into a new theme package, change
-  the CSS variables, and import it in `apps/web/src/styles.css`. Components use
-  only these tokens. `scripts/theme-contrast.test.ts` (in `yarn verify`) fails
-  when a text colour drops below 4.5:1 on its background, or an input border,
-  the focus ring or a button below 3:1, in every `theme-*` package and in each
-  mode it defines (light, and dark if it has one).
-- **Dark mode:** the theme's `.dark` block. The header's button switches it,
-  following the system until used; the choice is kept in this browser and
-  applied before the first paint (`apps/web/public/theme.js`). A theme
-  without a `.dark` block stays light: remove the button from the header too.
+- **Branding:** `packages/theme-platform-booking` holds the previous version's
+  palette. Components use only these tokens. The Inter and JetBrains Mono
+  fonts are used when installed; they aren't downloaded, since the CSP allows
+  nothing from other origins. `scripts/theme-contrast.test.ts` (in
+  `yarn verify`) fails when a text colour drops below 4.5:1 on its background,
+  or an input border, the focus ring or a button below 3:1, in every `theme-*`
+  package and in each mode it defines.
+- **Dark mode:** the theme's `.dark` block. Dark by default, as in the previous
+  version; the header's button switches it, and the choice is kept in this
+  browser and applied before the first paint (`apps/web/public/theme.js`).
 - **Languages:** `LANGUAGES` in `packages/core/src/site.ts`, default first.
   Visitors get the first one their browser asks for and can switch in the
   header (shown when there are two or more). Texts are JSON files per

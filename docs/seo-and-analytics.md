@@ -55,8 +55,9 @@ from the GA property's web stream). Then:
   Google's hosts (`stats.g.doubleclick.net`, `www.google.com`): add them to
   the CSP in `apps/bff/src/app.ts` first, or the browser blocks them.
 
-Before turning it on, describe it in the site's privacy policy (the footer's
-"Privacy" link). The banner's text is in
+Before turning it on, publish a privacy policy that describes it and link to
+it from the footer (the site has none yet). Set `GA_MEASUREMENT_ID` in
+`docker/.env`. The banner's text is in
 `apps/web/src/components/consent-banner.tsx`.
 
 ## Compression
