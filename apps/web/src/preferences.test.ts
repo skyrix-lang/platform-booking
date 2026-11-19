@@ -22,12 +22,12 @@ describe("preferences", () => {
   it("fall back to defaults for a value they don't know", async () => {
     window.localStorage.setItem(
       PREFERENCES_KEY,
-      JSON.stringify({ state: { theme: "neon", language: "fr" }, version: 1 }),
+      JSON.stringify({ state: { theme: "neon", language: "en" }, version: 1 }),
     );
     await usePreferences.persist.rehydrate();
     expect(usePreferences.getState()).toMatchObject({
       theme: "dark",
-      language: "fr",
+      language: "en",
     });
   });
 

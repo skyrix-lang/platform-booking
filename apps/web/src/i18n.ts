@@ -2,7 +2,6 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { LANGUAGES, type Language } from "@platform-booking/core";
 import en from "./locales/en.json";
-import fr from "./locales/fr.json";
 import { usePreferences } from "./preferences";
 
 // Every text on screen comes from a messages file, one per language and
@@ -14,7 +13,7 @@ import { usePreferences } from "./preferences";
 // English JSON and returns another language's; i18n.test.ts checks every
 // language has the same keys.
 
-const app = { en, fr } satisfies Record<Language, unknown>;
+const app = { en } satisfies Record<Language, unknown>;
 
 export const resources = Object.fromEntries(
   LANGUAGES.map((language) => [language, { app: app[language] }]),
