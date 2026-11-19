@@ -139,6 +139,7 @@ origin, as in production.
 | `yarn db:up` / `yarn keycloak:up`                 | start the local containers                                                |
 | `yarn docker:build`                               | build the image                                                           |
 | `yarn docker:up` / `yarn docker:down`             | try the image locally with Postgres and the migrations (Docker Compose)   |
+| `yarn deploy`                                     | ship the current commit to a server, backup first ("Deploying")           |
 
 ## Configuration
 
@@ -388,6 +389,135 @@ on `SIGTERM` the server finishes the requests in progress before it exits.
 To try the image locally, `yarn docker:up` runs `docker/compose.yaml`:
 Postgres, the migrations and the app at http://localhost:8080. Its password is
 public: it isn't a deployment.
+
+### Deploying
+
+Off until a project turns it on: the starter ships the scripts, and nothing
+deploys anywhere until you run `yarn deploy` or set the Deploy workflow's
+`DEPLOY_SSH` variable. [docs/auto-deploy.md](docs/auto-deploy.md) is the
+step-by-step setup (Claude can follow it).
+
+> **Not wired up in this project yet.** The scripts below come from the
+> starter and expect an [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy)
+> setup with a shared Postgres on its `nginx-proxy` network. This project's
+> `docker/compose.production.yaml` is the self-contained stack described in
+> [Deploy](#deploy) (its own Postgres, port 80), so `yarn deploy` and the
+> nightly workflow won't work with it as is. Adapting them is a decision to
+> take before setting `DEPLOY_SSH`.
+
+The starter's `docker/compose.production.yaml` runs the image on a server (a
+VPS with Docker) behind an nginx-proxy with its Let's Encrypt companion, on the
+proxy's `nginx-proxy` network, which also reaches a shared Postgres as
+`postgres`. The app must be served over https.
+
+One-time setup on the server, in the deploy folder (`apps/platform-booking`
+in the deploy user's home by default; `DEPLOY_DIR` changes it):
+
+1. Create a database and its user in Postgres. The user must **own** the
+   database: a restore drops and creates the `public` schema.
+2. `.env.production`, readable by its owner only, with the production values
+   of `.env.example` (its "Production" section lists the extra ones):
+
+   ```bash
+   mkdir -p ~/apps/platform-booking && install -m 600 /dev/null ~/apps/platform-booking/.env.production && nano ~/apps/platform-booking/.env.production
+   ```
+
+3. `backup.env`, for the backups (see "Backups" below): no deploy runs
+   without it.
+
+Then, for each release, from a checkout of the commit to ship:
+
+```bash
+DEPLOY_SSH=<user>@<server> DEPLOY_PORT=<port> yarn deploy
+```
+
+`scripts/deploy.sh` copies the commit to the server (no git there), then
+`scripts/deploy-remote.sh`:
+
+1. builds the new image while the old version still serves people, keeping
+   the running one as `platform-booking-app:previous`;
+2. stops the app, so nothing is written from the backup on;
+3. backs the database up and proves the backup (see "Backups"). If that
+   fails, the old version starts again and nothing is migrated;
+4. applies the migrations, then starts the new version and waits for its
+   health check.
+
+Then `yarn deploy` checks the public address (the server's `PUBLIC_URL`, or
+`DEPLOY_URL`): `/api/health` and `/` must answer over https within about a
+minute.
+
+**Rollback.** When step 4 fails, or the public address doesn't answer,
+`scripts/rollback-remote.sh` puts back both halves and the deploy fails:
+
+- **the database**, from the backup of step 3, if a migration ran since (it
+  compares how many migrations the database has applied with the count
+  before the deploy). The app was stopped since the backup, so nothing is
+  lost;
+- **the app**: `platform-booking-app:previous` starts again.
+
+By hand, right after a failed deploy:
+`ssh -p <port> <user>@<server> 'cd apps/platform-booking/src && sh scripts/rollback-remote.sh'`.
+
+### Backups
+
+`scripts/backup-remote.sh` dumps the database (`pg_dump` with the server's
+own Postgres version), restores the dump into a throwaway Postgres and
+compares its tables (and, before a deploy, every table's row count), uploads
+it to a Cloudflare R2 bucket and checks R2 holds all of it. It runs before
+every deploy, and every night once automatic deploys are on. The last 7 also
+stay on the server, in `apps/platform-booking/backups`.
+
+One-time setup:
+
+1. **Cloudflare dashboard:** R2 → **Create bucket** (`platform-booking-backups`,
+   location automatic). In its Settings → **Object lifecycle rules**, delete
+   objects after 30 days. Then R2 → **Manage API tokens** → **Create API
+   token**: **Object Read & Write**, on that bucket only. Keep the Access Key
+   ID, the Secret Access Key and your Account ID (R2's overview page, or the
+   part before `.r2.cloudflarestorage.com` in the S3 endpoint).
+2. **On the server**, next to `.env.production`, from the template
+   `docker/backup.env.example`:
+
+   ```bash
+   install -m 600 /dev/null ~/apps/platform-booking/backup.env && nano ~/apps/platform-booking/backup.env
+   ```
+
+   ```bash
+   R2_ACCOUNT_ID=<account id>
+   R2_BUCKET=platform-booking-backups
+   AWS_ACCESS_KEY_ID=<access key id>
+   AWS_SECRET_ACCESS_KEY=<secret access key>
+   ```
+
+3. **Try it**, once a deploy has copied the scripts there:
+
+   ```bash
+   ssh -p <port> <user>@<server> 'cd apps/platform-booking/src && sh scripts/backup-remote.sh'
+   ```
+
+   It ends with `Backup OK: … tables restored and checked, in R2.`
+
+**Restoring by hand**, with the latest backup or one you name (download an
+older one from R2 into `apps/platform-booking/backups` first). The app is
+stopped and left stopped; the restore is one transaction, so a failed one
+changes nothing:
+
+```bash
+ssh -p <port> <user>@<server> 'cd apps/platform-booking/src && sh scripts/restore-remote.sh ../backups/platform-booking-<date>.dump'
+```
+
+Then start the version that matches the data:
+`docker compose -f docker/compose.production.yaml up -d --no-build app`.
+
+### Deploying automatically
+
+`.github/workflows/deploy.yml` runs every night at 02:00, Paris time: it
+deploys `main` if the server doesn't run that commit yet and CI passed on it,
+and otherwise backs the database up. **Run workflow** in the Actions tab
+deploys `main` at once. It does nothing, in the starter and in any project,
+until the `DEPLOY_SSH` repository variable is set. Turning it on (a deploy
+key, the `production` environment, two secrets and a variable):
+[docs/auto-deploy.md](docs/auto-deploy.md).
 
 ### Logs
 
