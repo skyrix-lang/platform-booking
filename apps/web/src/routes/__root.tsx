@@ -11,6 +11,7 @@ import {
 import { useEffect } from "react";
 import { useLiveUpdates } from "@platform-booking/feature-platforms";
 import { Button, buttonVariants } from "@platform-booking/ui";
+import { ConsentBanner } from "../components/consent-banner";
 import { Footer } from "../components/footer";
 import { Header } from "../components/header";
 import { usePageMeta } from "../page-meta";
@@ -40,6 +41,7 @@ function RootLayout() {
         </div>
       </main>
       <Footer />
+      <ConsentBanner />
     </div>
   );
 }
