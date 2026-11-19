@@ -292,3 +292,127 @@ fees and an S3 API. Building on the server needs no registry.
 **Revisit when:** a project is used at night or its database takes minutes
 to dump (migrate without stopping, point-in-time recovery), or a project
 deploys somewhere other than one Docker server.
+
+## Google Analytics behind a consent banner, off by default
+
+GA4 is turned on by setting `GA_MEASUREMENT_ID` when the server starts; the
+BFF writes it into `index.html` (a `meta` tag, no extra request) and only then
+adds Google's origins to the CSP. Google's library is loaded by the app's own
+script once a visitor accepts in the banner, never before, so there is no
+inline script and no cookie or request to Google without consent. It starts
+with Consent Mode v2 denying everything, then grants `analytics_storage`
+only. The choice is kept in `localStorage` for six months, then asked again;
+"Cookie settings" in the footer reopens the banner, and declining after
+accepting stops measuring and deletes Google's cookies. Declining is a button
+like accepting, next to it. Page views of client-side navigations are left to
+GA4's enhanced measurement.
+**Why:** the ePrivacy rules as the CNIL applies them require consent before
+audience-measurement cookies, refusal as easy as acceptance and a way to
+withdraw; six months is the CNIL's recommended lifetime for the choice. Loading
+the script only after consent (Consent Mode's "basic" setup) sends Google
+nothing for visitors who refuse, unlike the "advanced" setup's cookieless
+pings. Enhanced measurement already counts history changes; sending page
+views from the router as well would count each one twice, unless every
+project remembered to turn the history option off in GA's admin. The cost:
+such a page view may carry the previous page's title, since the router
+changes the address before the page sets its title; its URL is right.
+**Revisit when:** a project needs another measurement tool, or one exempt
+from consent (a self-hosted, cookieless one such as Matomo configured per the
+CNIL's exemption): the banner and the store in `apps/web/src/analytics.ts`
+then become generic. Or when advertising needs ad storage: ask for it
+separately in the banner.
+
+## Precompressed assets, served by the BFF
+
+A small Vite plugin (`precompress` in `apps/web/vite.config.ts`, on
+`node:zlib`) writes brotli and gzip copies of the build's text files at
+maximum compression; the BFF serves them with `serveStatic`'s `precompressed`
+option and compresses `index.html` once at startup. Every static response
+carries `Vary: Accept-Encoding`.
+**Why:** compressing at build time costs nothing per request and allows
+brotli's strongest level (about 13% smaller than gzip's best on this build), which is
+too slow to run per request. Writing the plugin took 40 lines and no new
+dependency.
+**Revisit when:** a CDN or proxy in front compresses and caches on its own:
+the copies then only cost image size.
+
+## Theme contrast checked by a unit test
+
+`scripts/theme-contrast.test.ts` computes WCAG 2.2 contrast for each token
+pair the components use (text 4.5:1; input borders, the focus ring, buttons
+and invalid borders 3:1), in every `packages/theme-*` package, for light mode
+and each dark mode a theme defines (`prefers-color-scheme: dark`, `.dark` or
+`[data-theme]`). Its pair lists name the pairs the UI kit draws. The default
+theme's `--input` became `#7c8aa0` (3.3:1), from `#cbd5e1` (1.4:1).
+**Why:** axe only sees the states the e2e tests reach, in the theme the app
+imports; a customer theme, a dark mode or a hover colour isn't checked there.
+Text sized as "large" (3:1) isn't assumed, so every text pair is held to 4.5:1.
+**Revisit when:** the UI kit draws a new pair (a new token, or a token on a
+new background): add it to `scripts/theme-contrast.ts`.
+
+## Texts in react-i18next, English and French
+
+Every text on screen comes from JSON messages files, one per language and
+namespace (`app` in `apps/web/src/locales`, one per feature package), loaded
+by i18next with react-i18next and bundled, so there is no request and no
+flash of keys. Keys are type-checked against the English files and a test
+fails when another language misses one. The language is the visitor's choice
+from the header, else the first of their browser's languages that the site
+offers (`LANGUAGES` in `packages/core/src/site.ts`), else the first one; it
+sets `<html lang>`. Dates go through `Intl` in that language. The metadata
+crawlers read (`index.html`, the sitemap) stays in the default language.
+**Why:** projects are French and English, and the starter's screens (sign-in,
+errors, bookings) reach every project through the sync: written once with
+keys, each project gets them in its own language. react-i18next is the most
+used React i18n library, its JSON works with translation tools, and its
+plurals and interpolation are more than a homemade lookup would give for long.
+**Revisit when:** a page must rank in several languages: it then needs an
+address per language (`/fr/…`) and `hreflang`, which the language-in-storage
+choice doesn't give.
+
+## Client state in Zustand, persisted with a version
+
+What the visitor sets in this browser (theme, language) is a Zustand store
+saved to `localStorage` with `persist` (`apps/web/src/preferences.ts`), with a
+`version` and values checked by Zod as they're read back, so an old or edited
+value falls back to its default. Analytics consent keeps its own key, which
+has an expiry.
+**Why:** Zustand was already the recorded choice for client-only state, and
+this was the first need. `persist` gives one pattern for anything a project
+must remember, without a hand-written storage layer per feature.
+
+## Dark mode by a class, set before the first paint
+
+A theme's dark colours are a `.dark` block; the app puts the class on
+`<html>` when the visitor picks dark, or when the system is dark and they
+haven't chosen. `apps/web/public/theme.js`, a small classic script in
+`index.html`'s head, reads the stored choice before the page renders.
+**Why:** a class (not only `prefers-color-scheme`) lets the visitor override
+the system; a script file, not an inline one, keeps the strict CSP; running
+before the app's bundle avoids a white flash on every load. The contrast test
+reads `.dark` blocks, so the dark palette is held to AA too.
+
+## Toasts from Base UI
+
+`toast()` and `<Toaster>` in `@platform-booking/ui` wrap Base UI's Toast: a polite
+announcement for confirmations, an assertive one that stays until closed for
+errors. Toasts confirm what just happened; form errors stay in the form.
+**Why:** Base UI is already the component base, so no new dependency, and its
+toasts handle focus (F6), screen reader announcements and pausing on hover.
+
+## Real 404s for an SPA, from the route tree
+
+The build writes the app's route paths to `routes.json`, read from TanStack
+Router's generated route tree (`routesManifest` in `apps/web/vite.config.ts`),
+and the BFF answers 404 for any path that matches none, with the app's own
+page, which renders "Page not found". Without the file it answers 200
+everywhere, as before. The `www.` twin of `PUBLIC_URL`'s host redirects to
+`PUBLIC_URL` (301), and only that host: a proxy that passes its upstream name
+(`app:3000`) or an address must not loop.
+**Why:** a 200 for an unknown address is a "soft 404" to Google, and a typo
+or an old link looks like a page. The route tree is the single source of
+routes, so nothing is listed twice. Redirecting only the `www.` twin covers
+the usual duplicate without trusting the `Host` header beyond it.
+**Revisit when:** routes are prerendered (see "Client-only SPA"): the static
+pages then carry their own status. Or a route can tell from the URL alone
+that its record doesn't exist (a slug list known at build time).

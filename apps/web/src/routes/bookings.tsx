@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { BookingsPage } from "@platform-booking/feature-platforms";
 import { pageFor } from "../overrides";
 import { usePageMeta } from "../page-meta";
@@ -8,7 +9,8 @@ const Page = pageFor("/bookings", BookingsPage);
 
 export const Route = createFileRoute("/bookings")({
   component: function BookingsRoute() {
-    usePageMeta({ title: "Bookings", noindex: true });
+    const { t } = useTranslation();
+    usePageMeta({ title: t("bookings.title"), noindex: true });
     return <Page />;
   },
 });

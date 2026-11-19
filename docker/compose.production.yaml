@@ -54,6 +54,8 @@ services:
       # to the team's zone (Europe/Paris), or bookings end at UTC midnight
       # while the browser's calendar says otherwise.
       TZ: ${TZ:?set TZ to the team's time zone, such as Europe/Paris}
+      # Google Analytics (README, "Analytics"): empty, as by default, means off.
+      GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
     ports:
       - "${APP_PORT:-80}:3000"
     depends_on:
