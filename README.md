@@ -79,8 +79,8 @@ from the starter; `.starter.json` records the starter commit it started from.
 
 The whole setup, from the clone to a GitHub repository with auto-merge, CI,
 Claude, Renovate and the starter sync, step by step (Claude can run most of
-it): [docs/new-project.md](docs/new-project.md). To deploy each merge into
-`main` to a server automatically: [docs/auto-deploy.md](docs/auto-deploy.md).
+it): [docs/new-project.md](docs/new-project.md). To deploy `main` to a
+server every night, with a database backup first: [docs/auto-deploy.md](docs/auto-deploy.md).
 
 - **Versions:** Renovate updates every repository with one policy, the
   starter's `default.json`; each `renovate.json` only extends it. Install the
