@@ -7,21 +7,7 @@ import {
   test,
 } from "./support";
 
-test.describe("theme", () => {
-  test("is dark by default, and the choice is remembered", async ({ page }) => {
-    await gotoHydrated(page, "/");
-    const html = page.locator("html");
-    await expect(html).toHaveClass(/\bdark\b/);
-
-    await page.getByRole("button", { name: "Light mode" }).click();
-
-    await expect(html).not.toHaveClass(/\bdark\b/);
-    await page.reload();
-    await expect(html).not.toHaveClass(/\bdark\b/);
-    await page.getByRole("button", { name: "Dark mode" }).click();
-    await expect(html).toHaveClass(/\bdark\b/);
-  });
-});
+// The theme's default, toggle and memory: preferences.spec.ts.
 
 test("light mode is readable too", async ({ page }) => {
   // Axe runs on the page each test ends on: this one ends in light mode, on
@@ -30,7 +16,15 @@ test("light mode is readable too", async ({ page }) => {
   await bookPlatform(page.request, id);
   await gotoDashboardFor(page, id);
 
-  await page.getByRole("button", { name: "Light mode" }).click();
+  // On a phone, the theme switch is in the menu.
+  const banner = page.getByRole("banner");
+  const menu = banner.getByRole("button", { name: "Open menu" });
+  if (await menu.isVisible()) await menu.click();
+  await banner.getByRole("button", { name: "Switch to light theme" }).click();
+  // Back to the dashboard, menu closed, for axe.
+  if (await banner.getByRole("button", { name: "Close menu" }).isVisible()) {
+    await banner.getByRole("button", { name: "Close menu" }).click();
+  }
 
   await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
 });
