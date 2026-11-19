@@ -1,34 +1,46 @@
-import { useCallback, useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+import { usePreferences, type Theme } from "./preferences";
 
-// Dark by default, as in the previous version; the header's button switches to
-// light and back, remembered in this browser. public/theme.js applies the
-// choice before React starts.
+// Light or dark: the theme's `.dark` block (packages/theme-*) applies when
+// <html> has the class. "system" follows the operating system, live.
+// public/theme.js sets it before the first paint, so a dark page doesn't
+// flash white; this keeps it in step afterwards.
 
-export type Theme = "light" | "dark";
+const darkQuery = () => window.matchMedia("(prefers-color-scheme: dark)");
 
-function storedTheme(): Theme {
-  try {
-    return localStorage.getItem("theme") === "light" ? "light" : "dark";
-  } catch {
-    return "dark";
-  }
+export function isDark(theme: Theme) {
+  return theme === "dark" || (theme === "system" && darkQuery().matches);
 }
 
-export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(storedTheme);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    try {
-      localStorage.setItem("theme", theme);
-    } catch {
-      // Storage refused (private mode): the choice lasts for this page only.
-    }
-  }, [theme]);
-
-  const toggleTheme = useCallback(
-    () => setTheme((current) => (current === "dark" ? "light" : "dark")),
-    [],
+function apply() {
+  document.documentElement.classList.toggle(
+    "dark",
+    isDark(usePreferences.getState().theme),
   );
-  return { theme, toggleTheme };
+}
+
+function subscribeToSystem(onChange: () => void) {
+  const query = darkQuery();
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/** Call once at startup. */
+export function startTheme() {
+  apply();
+  usePreferences.subscribe(apply);
+  darkQuery().addEventListener("change", apply);
+}
+
+/** Whether the page is dark now, and a switch to the other one. */
+export function useTheme() {
+  const theme = usePreferences((state) => state.theme);
+  const setTheme = usePreferences((state) => state.setTheme);
+  // Re-render when the system switches, so "system" stays accurate.
+  const systemDark = useSyncExternalStore(
+    subscribeToSystem,
+    () => darkQuery().matches,
+  );
+  const dark = theme === "dark" || (theme === "system" && systemDark);
+  return { dark, toggle: () => setTheme(dark ? "light" : "dark") };
 }
