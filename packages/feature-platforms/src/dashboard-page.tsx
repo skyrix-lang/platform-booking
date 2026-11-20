@@ -169,80 +169,82 @@ export function DashboardPage({
   );
 
   return (
-    <div className="space-y-6">
-      {error && (
-        <ErrorBanner message={error} onDismiss={() => setError(null)} />
-      )}
+    <section className="page-section">
+      <div className="page-container space-y-6">
+        {error && (
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
+        )}
 
-      <PageHeading
-        title="Platforms"
-        detail={`${available.length}/${platforms.length} available`}
-      />
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <SearchBox value={search} onChange={setSearch} />
-        <Segmented
-          label="Platform type"
-          options={PLATFORM_TYPES}
-          value={type}
-          name={(mode) =>
-            mode === "k8s" ? "K8S" : mode === "swarm" ? "Swarm" : "All"
-          }
-          onChange={(mode) =>
-            onFiltersChange({
-              ...filters,
-              type: mode === "all" ? undefined : mode,
-            })
-          }
+        <PageHeading
+          title="Platforms"
+          detail={`${available.length}/${platforms.length} available`}
         />
-        <Segmented
-          label="Availability"
-          options={AVAILABILITIES}
-          value={show}
-          name={(mode) => mode.charAt(0).toUpperCase() + mode.slice(1)}
-          onChange={(mode) =>
-            onFiltersChange({
-              ...filters,
-              show: mode === "all" ? undefined : mode,
-            })
-          }
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <SearchBox value={search} onChange={setSearch} />
+          <Segmented
+            label="Platform type"
+            options={PLATFORM_TYPES}
+            value={type}
+            name={(mode) =>
+              mode === "k8s" ? "K8S" : mode === "swarm" ? "Swarm" : "All"
+            }
+            onChange={(mode) =>
+              onFiltersChange({
+                ...filters,
+                type: mode === "all" ? undefined : mode,
+              })
+            }
+          />
+          <Segmented
+            label="Availability"
+            options={AVAILABILITIES}
+            value={show}
+            name={(mode) => mode.charAt(0).toUpperCase() + mode.slice(1)}
+            onChange={(mode) =>
+              onFiltersChange({
+                ...filters,
+                show: mode === "all" ? undefined : mode,
+              })
+            }
+          />
+        </div>
+
+        {visible.length === 0 ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">
+            No platforms found
+          </p>
+        ) : (
+          <div className="space-y-8">
+            {sections.map(
+              (section) =>
+                section.platforms.length > 0 && (
+                  <section
+                    key={section.title}
+                    aria-labelledby={`section-${section.id}`}
+                  >
+                    <h2
+                      id={`section-${section.id}`}
+                      className="mb-3 text-sm font-semibold text-secondary-foreground"
+                    >
+                      {section.title}
+                    </h2>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {section.platforms.map(card)}
+                    </div>
+                  </section>
+                ),
+            )}
+          </div>
+        )}
+
+        <BookingDialog
+          target={target}
+          onConfirm={confirm}
+          onClose={() => setTarget(null)}
         />
       </div>
-
-      {visible.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">
-          No platforms found
-        </p>
-      ) : (
-        <div className="space-y-8">
-          {sections.map(
-            (section) =>
-              section.platforms.length > 0 && (
-                <section
-                  key={section.title}
-                  aria-labelledby={`section-${section.id}`}
-                >
-                  <h2
-                    id={`section-${section.id}`}
-                    className="mb-3 text-sm font-semibold text-secondary-foreground"
-                  >
-                    {section.title}
-                  </h2>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {section.platforms.map(card)}
-                  </div>
-                </section>
-              ),
-          )}
-        </div>
-      )}
-
-      <BookingDialog
-        target={target}
-        onConfirm={confirm}
-        onClose={() => setTarget(null)}
-      />
-    </div>
+    </section>
   );
 }
 

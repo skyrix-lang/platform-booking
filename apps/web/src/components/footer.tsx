@@ -12,7 +12,7 @@ export function Footer() {
   const { t } = useTranslation();
   return (
     <footer className="mt-auto border-t bg-card">
-      <div className="mx-auto max-w-7xl px-4 py-4 text-center text-xs text-muted-foreground sm:px-6 lg:px-8">
+      <div className="page-container py-4 text-center text-xs text-muted-foreground">
         {t("footer.rights", { year, name: site.name })} -{" "}
         <Link
           to="/platforms"

@@ -11,3 +11,5 @@ the light/dark switch (`src/theme.ts`, `public/theme.js`), page overrides
   the site is open. URL state (the dashboard's filters) is validated in
   `validateSearch` and passed to the feature's page as props.
 - Never import `@platform-booking/db` or anything server-side.
+- The root layout (`src/routes/__root.tsx`) has no container: each page is
+  `page-section` > `page-container` (AGENTS.md, "Typography and layout").

@@ -87,148 +87,153 @@ export function PlatformsPage() {
   const list = platforms.data ?? [];
 
   return (
-    <div className="space-y-6">
-      <div ref={top} className="scroll-mt-20" />
+    <section className="page-section">
+      <div className="page-container space-y-6">
+        <div ref={top} className="scroll-mt-20" />
 
-      {error && (
-        <ErrorBanner message={error} onDismiss={() => setError(null)} />
-      )}
-
-      <div className="flex items-center justify-between">
-        <PageHeading
-          title="Manage Platforms"
-          detail={`${list.length} ${list.length === 1 ? "platform" : "platforms"}`}
-        />
-        {!creating && !editing && (
-          <Button
-            size="sm"
-            className="text-xs"
-            onClick={() => setCreating(true)}
-          >
-            <Plus aria-hidden="true" className="h-4 w-4" />
-            Add Platform
-          </Button>
+        {error && (
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
         )}
-      </div>
 
-      {(creating || editing) && (
-        <div
-          key={editing?.id ?? "new"}
-          className={cn(
-            "rounded-md border bg-card p-4 motion-safe:animate-slide-in",
-            editing && "border-primary/40",
-          )}
-        >
-          <h2 className="mb-4 text-sm font-semibold">
-            {editing ? `Edit ${editing.id.toUpperCase()}` : "New Platform"}
-          </h2>
-          <PlatformForm
-            initial={editing ?? emptyForm}
-            isEdit={!!editing}
-            onSubmit={save}
-            onCancel={() => {
-              setCreating(false);
-              setEditing(null);
-            }}
+        <div className="flex items-center justify-between">
+          <PageHeading
+            title="Manage Platforms"
+            detail={`${list.length} ${list.length === 1 ? "platform" : "platforms"}`}
           />
-        </div>
-      )}
-
-      <Table
-        label="Platforms"
-        columns={["Platform", "Description", "Flags"]}
-        action="Actions"
-      >
-        {list.map((platform) => {
-          const name = platform.id.toUpperCase();
-          return (
-            <tr
-              key={platform.id}
-              className={cn(
-                "transition-colors",
-                editing?.id === platform.id
-                  ? "bg-primary-soft"
-                  : "hover:bg-secondary",
-              )}
+          {!creating && !editing && (
+            <Button
+              size="sm"
+              className="text-xs"
+              onClick={() => setCreating(true)}
             >
-              <td className="px-4 py-3 font-medium">
-                <span className="flex items-center gap-2">
-                  <PlatformIcon kubernetes={platform.kubernetes} />
-                  {name}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-xs text-muted-foreground">
-                {platform.description || "-"}
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  {platform.kubernetes && (
-                    <Badge className="gap-1 rounded-md bg-info-soft px-1.5 text-info-soft-foreground">
-                      <Box aria-hidden="true" className="h-3 w-3" />
-                      K8S
-                    </Badge>
-                  )}
-                  {platform.nightly && (
-                    <Badge className="gap-1 rounded-md bg-accent-soft px-1.5 text-accent-soft-foreground">
-                      <Moon aria-hidden="true" className="h-3 w-3" />
-                      Nightly
-                    </Badge>
-                  )}
-                  {!platform.kubernetes && !platform.nightly && (
-                    <span className="text-xs text-muted-foreground">-</span>
-                  )}
-                </div>
-              </td>
-              <td className="px-4 py-3 text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Edit ${name}`}
-                    onClick={() => {
-                      setCreating(false);
-                      setEditing(platform);
-                      requestAnimationFrame(() =>
-                        top.current?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        }),
-                      );
-                    }}
-                  >
-                    <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Delete ${name}`}
-                    onClick={() =>
-                      remove.mutate(
-                        { id: platform.id },
-                        {
-                          onSuccess: () => {
-                            if (editing?.id === platform.id) setEditing(null);
+              <Plus aria-hidden="true" className="h-4 w-4" />
+              Add Platform
+            </Button>
+          )}
+        </div>
+
+        {(creating || editing) && (
+          <div
+            key={editing?.id ?? "new"}
+            className={cn(
+              "rounded-md border bg-card p-4 motion-safe:animate-slide-in",
+              editing && "border-primary/40",
+            )}
+          >
+            <h2 className="mb-4 text-sm font-semibold">
+              {editing ? `Edit ${editing.id.toUpperCase()}` : "New Platform"}
+            </h2>
+            <PlatformForm
+              initial={editing ?? emptyForm}
+              isEdit={!!editing}
+              onSubmit={save}
+              onCancel={() => {
+                setCreating(false);
+                setEditing(null);
+              }}
+            />
+          </div>
+        )}
+
+        <Table
+          label="Platforms"
+          columns={["Platform", "Description", "Flags"]}
+          action="Actions"
+        >
+          {list.map((platform) => {
+            const name = platform.id.toUpperCase();
+            return (
+              <tr
+                key={platform.id}
+                className={cn(
+                  "transition-colors",
+                  editing?.id === platform.id
+                    ? "bg-primary-soft"
+                    : "hover:bg-secondary",
+                )}
+              >
+                <td className="px-4 py-3 font-medium">
+                  <span className="flex items-center gap-2">
+                    <PlatformIcon kubernetes={platform.kubernetes} />
+                    {name}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">
+                  {platform.description || "-"}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    {platform.kubernetes && (
+                      <Badge className="gap-1 rounded-md bg-info-soft px-1.5 text-info-soft-foreground">
+                        <Box aria-hidden="true" className="h-3 w-3" />
+                        K8S
+                      </Badge>
+                    )}
+                    {platform.nightly && (
+                      <Badge className="gap-1 rounded-md bg-accent-soft px-1.5 text-accent-soft-foreground">
+                        <Moon aria-hidden="true" className="h-3 w-3" />
+                        Nightly
+                      </Badge>
+                    )}
+                    {!platform.kubernetes && !platform.nightly && (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Edit ${name}`}
+                      onClick={() => {
+                        setCreating(false);
+                        setEditing(platform);
+                        requestAnimationFrame(() =>
+                          top.current?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          }),
+                        );
+                      }}
+                    >
+                      <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Delete ${name}`}
+                      onClick={() =>
+                        remove.mutate(
+                          { id: platform.id },
+                          {
+                            onSuccess: () => {
+                              if (editing?.id === platform.id) setEditing(null);
+                            },
+                            onError: (cause) =>
+                              setError(
+                                errorMessage(
+                                  cause,
+                                  "Failed to delete platform",
+                                ),
+                              ),
                           },
-                          onError: (cause) =>
-                            setError(
-                              errorMessage(cause, "Failed to delete platform"),
-                            ),
-                        },
-                      )
-                    }
-                  >
-                    <Trash2
-                      aria-hidden="true"
-                      className="h-3.5 w-3.5 text-destructive-soft-foreground"
-                    />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          );
-        })}
-      </Table>
-    </div>
+                        )
+                      }
+                    >
+                      <Trash2
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 text-destructive-soft-foreground"
+                      />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+      </div>
+    </section>
   );
 }
 

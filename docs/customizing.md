@@ -2,16 +2,22 @@
 
 What makes this the team's site: brand, dark mode, icons, pages and features.
 
-- **Branding:** `packages/theme-platform-booking` holds the previous version's
-  palette. Components use only these tokens. The Inter and JetBrains Mono
-  fonts are used when installed; they aren't downloaded, since the CSP allows
-  nothing from other origins. `scripts/theme-contrast.test.ts` (in
-  `yarn verify`) fails when a text colour drops below 4.5:1 on its background,
-  or an input border, the focus ring or a button below 3:1, in every `theme-*`
-  package and in each mode it defines.
+- **Branding:** the `design` skill takes a new brand from a brief and
+  references to the theme and `docs/design.md`. By hand: edit the CSS variables of `packages/theme-platform-booking` (the
+  previous version's palette). Components use only these tokens. `scripts/theme-contrast.test.ts` (in `yarn verify`) fails
+  when a text colour drops below 4.5:1 on its background, or an input border,
+  the focus ring or a button below 3:1, in every `theme-*` package and in each
+  mode it defines (light, and dark if it has one).
+  Fonts, heading weight and letter spacing, page width, text width and
+  section spacing are tokens too (`--font-heading`, `--heading-weight`,
+  `--content-width`…): every token, and which a brand usually changes, is in
+  `packages/theme-default/AGENTS.md`. A brand font is self-hosted: `.woff2`
+  files in the theme package, declared in a `fonts.css` next to `theme.css`,
+  never Google Fonts or another CDN (same file, "Fonts").
 - **Dark mode:** the theme's `.dark` block. Dark by default, as in the previous
   version; the header's button switches it, and the choice is kept in this
-  browser and applied before the first paint (`apps/web/public/theme.js`).
+  browser and applied before the first paint (`apps/web/public/theme.js`). A
+  theme without a `.dark` block stays light: remove the button from the header too.
 - **Languages:** `LANGUAGES` in `packages/core/src/site.ts`, default first.
   Visitors get the first one their browser asks for and can switch in the
   header (shown when there are two or more). Texts are JSON files per

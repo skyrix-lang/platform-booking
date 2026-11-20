@@ -30,7 +30,7 @@ export function Header() {
   // reading the screen size in render.
   return (
     <header className="sticky top-0 z-40 border-b bg-card">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="page-container">
         <div className="flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 rounded-md">
             <span
