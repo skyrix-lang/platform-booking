@@ -13,7 +13,9 @@ export const site = {
  * messages in every package's `locales/` folder; drop one here to stop
  * offering it. Keep `lang` in apps/web/index.html on the default.
  */
-export const LANGUAGES = ["en", "fr"] as const;
+// English only: the platforms screens aren't translated, and a half-French
+// site is worse than an English one. Add "fr" (and its messages) to offer it.
+export const LANGUAGES = ["en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 /** Pages that should rank: listed in the sitemap. App pages aren't. */

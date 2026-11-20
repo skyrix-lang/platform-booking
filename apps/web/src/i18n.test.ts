@@ -1,7 +1,6 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { LANGUAGES } from "@platform-booking/core";
 import { browserLanguage, i18n, resources } from "./i18n";
-import { usePreferences } from "./preferences";
 
 /**
  * Every key of a messages file, as "a.b.c", plural forms ("x_one", "x_few")
@@ -15,8 +14,6 @@ const keys = (messages: object, prefix = ""): string[] =>
   );
 const unique = (list: string[]) => [...new Set(list)].sort();
 
-afterEach(() => usePreferences.setState({ language: null }));
-
 describe.each(LANGUAGES.slice(1))("the %s messages", (language) => {
   const english = resources[LANGUAGES[0]]!;
   it.each(Object.keys(english))("have every key of %s", (namespace) => {
@@ -28,29 +25,13 @@ describe.each(LANGUAGES.slice(1))("the %s messages", (language) => {
 });
 
 describe("browserLanguage", () => {
-  it("takes the first language the site offers", () => {
-    expect(browserLanguage(["de-DE", "fr-CA", "en"])).toBe("fr");
-  });
-
-  it("falls back to the default", () => {
-    expect(browserLanguage(["de", "ja"])).toBe(LANGUAGES[0]);
-    expect(browserLanguage([])).toBe(LANGUAGES[0]);
+  it("is the default whatever the browser asks for", () => {
+    expect(browserLanguage(["fr-FR", "de"])).toBe("en");
+    expect(browserLanguage([])).toBe("en");
   });
 });
 
-describe("the chosen language", () => {
-  it("switches the texts and <html lang>", async () => {
-    usePreferences.getState().setLanguage("fr");
-    await waitForLanguage("fr");
-    expect(i18n.t("user.signIn")).toBe("Se connecter");
-    expect(document.documentElement.lang).toBe("fr");
-
-    usePreferences.getState().setLanguage(null);
-    await waitForLanguage("en");
-    expect(document.documentElement.lang).toBe("en");
-  });
+it("sets <html lang>", () => {
+  expect(i18n.language).toBe("en");
+  expect(document.documentElement.lang).toBe("en");
 });
-
-async function waitForLanguage(language: string) {
-  await expect.poll(() => i18n.language).toBe(language);
-}

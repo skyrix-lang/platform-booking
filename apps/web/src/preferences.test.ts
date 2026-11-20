@@ -27,7 +27,20 @@ describe("preferences", () => {
     await usePreferences.persist.rehydrate();
     expect(usePreferences.getState()).toMatchObject({
       theme: "dark",
-      language: "fr",
+      language: null,
+    });
+  });
+
+  it("drop a language the site no longer offers, keeping the rest", async () => {
+    // French was offered before; a visitor who picked it gets English now.
+    window.localStorage.setItem(
+      PREFERENCES_KEY,
+      JSON.stringify({ state: { theme: "light", language: "fr" }, version: 1 }),
+    );
+    await usePreferences.persist.rehydrate();
+    expect(usePreferences.getState()).toMatchObject({
+      theme: "light",
+      language: null,
     });
   });
 
