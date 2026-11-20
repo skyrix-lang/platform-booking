@@ -59,7 +59,8 @@ function ErrorPage({ error, reset }: ErrorComponentProps) {
 
   return (
     <section className="page-section text-center">
-      <div className="page-container">
+      {/* The extra padding keeps the previous version's spacing. */}
+      <div className="page-container py-20">
         <h1 className="text-h2">{t("error.title")}</h1>
         <p className="mt-2 text-muted-foreground">{t("error.text")}</p>
         <Button
@@ -85,7 +86,8 @@ function NotFoundPage() {
   usePageMeta({ title: t("notFound.title"), noindex: true });
   return (
     <section className="page-section text-center">
-      <div className="page-container">
+      {/* The extra padding keeps the previous version's spacing. */}
+      <div className="page-container py-20">
         <h1 className="text-h2">{t("notFound.title")}</h1>
         <p className="mt-2 text-muted-foreground">{t("notFound.text")}</p>
         <Link to="/" className={`mt-6 ${buttonVariants()}`}>

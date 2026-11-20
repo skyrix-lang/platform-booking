@@ -75,7 +75,14 @@ export function BookingsPage() {
     [bookings.data],
   );
 
-  if (bookings.isPending) return <Loading>Loading bookings...</Loading>;
+  if (bookings.isPending)
+    return (
+      <section className="page-section">
+        <div className="page-container">
+          <Loading>Loading bookings...</Loading>
+        </div>
+      </section>
+    );
 
   return (
     <section className="page-section">

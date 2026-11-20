@@ -17,6 +17,22 @@
   --radius: 0.25rem;
   color-scheme: light;
 
+  /*
+   * Typography: headings use text-display, text-h1, text-h2, text-h3. Inter
+   * for headings too (no --font-heading), bold, with no extra letter spacing,
+   * as the previous version's page titles were.
+   */
+  --heading-weight: 700;
+  --heading-tracking: 0;
+
+  /*
+   * Layout: page-container, page-section, prose-width. The previous version's
+   * 80rem page and 2rem of space above and below its content.
+   */
+  --content-width: 80rem;
+  --prose-width: 65ch;
+  --section-space: 2rem;
+
   --background: #f9fafb;
   --foreground: #111827;
   --card: #ffffff;

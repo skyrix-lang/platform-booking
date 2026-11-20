@@ -83,7 +83,14 @@ export function PlatformsPage() {
     }
   };
 
-  if (platforms.isPending) return <Loading>Loading platforms...</Loading>;
+  if (platforms.isPending)
+    return (
+      <section className="page-section">
+        <div className="page-container">
+          <Loading>Loading platforms...</Loading>
+        </div>
+      </section>
+    );
   const list = platforms.data ?? [];
 
   return (

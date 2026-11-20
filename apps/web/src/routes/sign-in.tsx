@@ -46,7 +46,7 @@ function SignInPage() {
   return (
     <section className="page-section">
       <div className="page-container">
-        <div className="max-w-sm mx-auto">
+        <div className="max-w-sm mx-auto py-8">
           <Card className="space-y-6">
             <div className="text-center">
               <h1 className="text-h2">{t("signIn.title")}</h1>

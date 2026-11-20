@@ -118,7 +118,13 @@ export function DashboardPage({
   }, [platforms, bookingsByPlatform, search, type, show]);
 
   if (platformsQuery.isPending || bookingsQuery.isPending) {
-    return <Loading>Loading platforms...</Loading>;
+    return (
+      <section className="page-section">
+        <div className="page-container">
+          <Loading>Loading platforms...</Loading>
+        </div>
+      </section>
+    );
   }
 
   const available = platforms.filter((p) => !bookingsByPlatform.has(p.id));
