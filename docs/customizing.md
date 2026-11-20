@@ -8,7 +8,11 @@ What makes this the team's site: brand, dark mode, icons, pages and features.
   nothing from other origins. `scripts/theme-contrast.test.ts` (in
   `yarn verify`) fails when a text colour drops below 4.5:1 on its background,
   or an input border, the focus ring or a button below 3:1, in every `theme-*`
-  package and in each mode it defines.
+  package and in each mode it defines. Fonts, heading weight and letter
+  spacing, page width, text width and section spacing are tokens too
+  (`--font-heading`, `--heading-weight`, `--content-width`…), listed in
+  `packages/theme-default/AGENTS.md`; `docs/design.md` records what this brand
+  does with them, and the `design` skill changes the brand from a brief.
 - **Dark mode:** the theme's `.dark` block. Dark by default, as in the previous
   version; the header's button switches it, and the choice is kept in this
   browser and applied before the first paint (`apps/web/public/theme.js`).

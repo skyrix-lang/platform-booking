@@ -75,168 +75,178 @@ export function BookingsPage() {
     [bookings.data],
   );
 
-  if (bookings.isPending) return <Loading>Loading bookings...</Loading>;
+  if (bookings.isPending)
+    return (
+      <section className="page-section">
+        <div className="page-container">
+          <Loading>Loading bookings...</Loading>
+        </div>
+      </section>
+    );
 
   return (
-    <div className="space-y-6">
-      {error && (
-        <ErrorBanner message={error} onDismiss={() => setError(null)} />
-      )}
+    <section className="page-section">
+      <div className="page-container space-y-6">
+        {error && (
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
+        )}
 
-      <PageHeading
-        title="Active Bookings"
-        detail={`${active.length} ${active.length === 1 ? "booking" : "bookings"}`}
-      />
+        <PageHeading
+          title="Active Bookings"
+          detail={`${active.length} ${active.length === 1 ? "booking" : "bookings"}`}
+        />
 
-      {active.length === 0 ? (
-        <EmptyState
-          icon={
-            <CalendarDays
-              aria-hidden="true"
-              className="mx-auto h-10 w-10 text-muted-foreground"
-            />
-          }
-        >
-          <p className="mt-3 text-sm">No active bookings</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            All platforms are available
+        {active.length === 0 ? (
+          <EmptyState
+            icon={
+              <CalendarDays
+                aria-hidden="true"
+                className="mx-auto h-10 w-10 text-muted-foreground"
+              />
+            }
+          >
+            <p className="mt-3 text-sm">No active bookings</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              All platforms are available
+            </p>
+          </EmptyState>
+        ) : (
+          <Table
+            label="Active bookings"
+            columns={["Platform", "User", "Period", "Status"]}
+            action="Action"
+          >
+            {active.map((booking) => {
+              const platform = platformOf(booking.platformId);
+              const daysLeft = daysUntil(booking.endDate);
+              const who = `${booking.trigram} on ${platform.id.toUpperCase()}`;
+              return (
+                <tr
+                  key={`${booking.platformId}-${booking.trigram}`}
+                  className="transition-colors hover:bg-secondary"
+                >
+                  <PlatformCell platform={platform} />
+                  <td className="px-4 py-3">
+                    <Trigram value={booking.trigram} />
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                    {formatDay(booking.startDate)} →{" "}
+                    {formatDay(booking.endDate)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      className="rounded-md px-1.5"
+                      tone={
+                        daysLeft === 0
+                          ? "danger"
+                          : daysLeft <= 1
+                            ? "warning"
+                            : "success"
+                      }
+                    >
+                      {daysLeft === 0 ? "Last day" : `${daysLeft}d left`}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs"
+                      aria-label={`Edit date for ${who}`}
+                      onClick={() => setTarget({ platform, booking })}
+                    >
+                      Edit date
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs"
+                      aria-label={`Release for ${who}`}
+                      onClick={() =>
+                        release.mutate({
+                          platformId: booking.platformId,
+                          trigram: booking.trigram,
+                        })
+                      }
+                    >
+                      Release
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+          </Table>
+        )}
+
+        <div className="mt-10">
+          <PageHeading title="History" level={2} detail="Last 3 weeks" />
+        </div>
+
+        {history.isPending ? (
+          <p
+            role="status"
+            className="py-8 text-center text-sm text-muted-foreground"
+          >
+            Loading history...
           </p>
-        </EmptyState>
-      ) : (
-        <Table
-          label="Active bookings"
-          columns={["Platform", "User", "Period", "Status"]}
-          action="Action"
-        >
-          {active.map((booking) => {
-            const platform = platformOf(booking.platformId);
-            const daysLeft = daysUntil(booking.endDate);
-            const who = `${booking.trigram} on ${platform.id.toUpperCase()}`;
-            return (
+        ) : !history.data?.length ? (
+          <EmptyState
+            icon={
+              <Clock
+                aria-hidden="true"
+                className="mx-auto h-10 w-10 text-muted-foreground"
+              />
+            }
+          >
+            <p className="mt-3 text-sm">No recent history</p>
+          </EmptyState>
+        ) : (
+          <Table
+            label="Booking history"
+            columns={["Platform", "User", "Period", "Released", "Reason"]}
+          >
+            {history.data.map((entry, index) => (
               <tr
-                key={`${booking.platformId}-${booking.trigram}`}
+                key={`${entry.platformId}-${entry.releasedAt}-${index}`}
                 className="transition-colors hover:bg-secondary"
               >
-                <PlatformCell platform={platform} />
+                <PlatformCell platform={platformOf(entry.platformId)} />
                 <td className="px-4 py-3">
-                  <Trigram value={booking.trigram} />
+                  <Trigram value={entry.trigram} />
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                  {formatDay(booking.startDate)} → {formatDay(booking.endDate)}
+                  {formatDay(entry.startDate)} → {formatDay(entry.endDate)}
+                </td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">
+                  {formatDateTime(entry.releasedAt)}
                 </td>
                 <td className="px-4 py-3">
-                  <Badge
-                    className="rounded-md px-1.5"
-                    tone={
-                      daysLeft === 0
-                        ? "danger"
-                        : daysLeft <= 1
-                          ? "warning"
-                          : "success"
-                    }
-                  >
-                    {daysLeft === 0 ? "Last day" : `${daysLeft}d left`}
-                  </Badge>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs"
-                    aria-label={`Edit date for ${who}`}
-                    onClick={() => setTarget({ platform, booking })}
-                  >
-                    Edit date
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs"
-                    aria-label={`Release for ${who}`}
-                    onClick={() =>
-                      release.mutate({
-                        platformId: booking.platformId,
-                        trigram: booking.trigram,
-                      })
-                    }
-                  >
-                    Release
-                  </Button>
+                  {entry.reason === "expired" ? (
+                    <Badge className="rounded-md px-1.5">Expired</Badge>
+                  ) : (
+                    <Badge className="rounded-md bg-info-soft px-1.5 text-info-soft-foreground">
+                      Released
+                    </Badge>
+                  )}
                 </td>
               </tr>
-            );
-          })}
-        </Table>
-      )}
+            ))}
+          </Table>
+        )}
 
-      <div className="mt-10">
-        <PageHeading title="History" level={2} detail="Last 3 weeks" />
+        <BookingDialog
+          target={target}
+          onConfirm={(_trigram, endDate) => {
+            if (target?.booking) {
+              const { platformId, trigram } = target.booking;
+              update.mutate({ platformId, trigram, data: { endDate } });
+            }
+            setTarget(null);
+          }}
+          onClose={() => setTarget(null)}
+        />
       </div>
-
-      {history.isPending ? (
-        <p
-          role="status"
-          className="py-8 text-center text-sm text-muted-foreground"
-        >
-          Loading history...
-        </p>
-      ) : !history.data?.length ? (
-        <EmptyState
-          icon={
-            <Clock
-              aria-hidden="true"
-              className="mx-auto h-10 w-10 text-muted-foreground"
-            />
-          }
-        >
-          <p className="mt-3 text-sm">No recent history</p>
-        </EmptyState>
-      ) : (
-        <Table
-          label="Booking history"
-          columns={["Platform", "User", "Period", "Released", "Reason"]}
-        >
-          {history.data.map((entry, index) => (
-            <tr
-              key={`${entry.platformId}-${entry.releasedAt}-${index}`}
-              className="transition-colors hover:bg-secondary"
-            >
-              <PlatformCell platform={platformOf(entry.platformId)} />
-              <td className="px-4 py-3">
-                <Trigram value={entry.trigram} />
-              </td>
-              <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                {formatDay(entry.startDate)} → {formatDay(entry.endDate)}
-              </td>
-              <td className="px-4 py-3 text-xs text-muted-foreground">
-                {formatDateTime(entry.releasedAt)}
-              </td>
-              <td className="px-4 py-3">
-                {entry.reason === "expired" ? (
-                  <Badge className="rounded-md px-1.5">Expired</Badge>
-                ) : (
-                  <Badge className="rounded-md bg-info-soft px-1.5 text-info-soft-foreground">
-                    Released
-                  </Badge>
-                )}
-              </td>
-            </tr>
-          ))}
-        </Table>
-      )}
-
-      <BookingDialog
-        target={target}
-        onConfirm={(_trigram, endDate) => {
-          if (target?.booking) {
-            const { platformId, trigram } = target.booking;
-            update.mutate({ platformId, trigram, data: { endDate } });
-          }
-          setTarget(null);
-        }}
-        onClose={() => setTarget(null)}
-      />
-    </div>
+    </section>
   );
 }
 
