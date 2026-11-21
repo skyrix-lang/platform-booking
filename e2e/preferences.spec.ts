@@ -80,36 +80,18 @@ test.describe("theme", () => {
 });
 
 test.describe("language", () => {
-  test.describe("from the browser", () => {
-    test.use({ locale: "fr-FR" });
+  // English only (LANGUAGES in packages/core/src/site.ts): no picker, and a
+  // French browser still gets English.
+  test.use({ locale: "fr-FR" });
 
-    test("starts in the browser's language", async ({ page }) => {
-      await page.goto("/");
-      await expect(
-        page.getByRole("link", { name: "Modifier les plateformes" }),
-      ).toBeVisible();
-      await expect(page.locator("html")).toHaveAttribute("lang", "fr");
-    });
-  });
-
-  test("switches from the header, and stays switched", async ({ page }) => {
+  test("is English, with no picker", async ({ page }) => {
     await gotoHydrated(page, "/");
-    await (
-      await header(page)
-    )
-      .getByRole("combobox", { name: "Language" })
-      .selectOption("fr");
-
-    const heading = page.getByRole("link", {
-      name: "Modifier les plateformes",
-    });
-    await expect(heading).toBeVisible();
-    await expect(page.locator("html")).toHaveAttribute("lang", "fr");
-
-    await page.reload();
-    await expect(heading).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(
-      (await header(page)).getByRole("combobox", { name: "Langue" }),
-    ).toHaveValue("fr");
+      page.getByRole("link", { name: "Edit platforms" }),
+    ).toBeVisible();
+    await expect(
+      (await header(page)).getByRole("combobox", { name: "Language" }),
+    ).toHaveCount(0);
   });
 });
