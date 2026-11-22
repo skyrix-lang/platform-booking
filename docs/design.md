@@ -5,8 +5,8 @@ How this site looks and why: read it before building or changing a page. The
 keep it in step with the theme and the pages. Rules, not history.
 
 This records Platform Booking as it is: the previous version's look, carried
-over into `packages/theme-platform-booking`. It was written from the theme
-and the pages, not from a design brief.
+over into `packages/theme-platform-booking`, and agreed with the team as its
+direction.
 
 ## Brief
 
@@ -45,10 +45,13 @@ in `packages/theme-default/AGENTS.md`.
 ## Type
 
 - App screens title themselves with `PageHeading`
-  (`packages/feature-platforms/src/parts.tsx`): an `h1` in `text-lg
-  font-semibold`, with a monospace count under it (`12/20 available`). It
-  is smaller than the scale on purpose: the screen's content is the focus.
-- Short pages (sign-in, errors, not found) use `text-h2` for their `h1`.
+  (`packages/feature-platforms/src/parts.tsx`): an `h1` in `text-h3` (18px,
+  20px from `sm`), with a monospace count under it (`12/20 available`). The
+  smallest heading on the scale, on purpose: the screen's content is the
+  focus. A second block on a screen ("History") uses it as an `h2`.
+- Short pages (sign-in, errors, not found) use `text-h2` for their `h1`: the
+  title is most of what they show. No size outside the scale: the scale lives
+  in `packages/ui`, shared with the starter.
 - Section titles inside a screen are small: `text-sm font-semibold
   text-secondary-foreground` (the dashboard's groups).
 - Card titles are `h3` in `font-semibold` at body size (a platform's id in
@@ -111,6 +114,8 @@ in `packages/theme-default/AGENTS.md`.
 - Don't add a new accent: the soft variants (`primary-soft`, `success-soft`,
   `info-soft`, `accent-soft`…) are for emphasis.
 - Don't animate without `motion-safe:`.
+- Do write a feature screen's texts in English, in the code: this site isn't
+  translated (`docs/decisions.md`, "Texts in react-i18next").
 
 ## Pages
 

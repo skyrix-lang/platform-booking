@@ -367,8 +367,10 @@ keys, each project gets them in its own language. react-i18next is the most
 used React i18n library, its JSON works with translation tools, and its
 plurals and interpolation are more than a homemade lookup would give for long.
 **Here:** English only (`LANGUAGES = ["en"]`), so there is no picker and the
-browser's language is ignored: `feature-platforms` isn't translated, and a
-half-French site would be worse. Translate it first to offer French.
+browser's language is ignored. `feature-platforms` isn't translated, by
+choice: its screens' texts stay hard-coded in English, not in messages files
+(only the app's own texts are). A half-French site would be worse: translate
+it first to offer French.
 **Revisit when:** a page must rank in several languages: it then needs an
 address per language (`/fr/…`) and `hreflang`, which the language-in-storage
 choice doesn't give.
