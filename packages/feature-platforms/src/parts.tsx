@@ -69,7 +69,7 @@ export function PageHeading({
   const Heading = level === 1 ? "h1" : "h2";
   return (
     <div>
-      <Heading className="text-lg font-semibold">{title}</Heading>
+      <Heading className="text-h3">{title}</Heading>
       <p className="mt-0.5 font-mono text-xs text-muted-foreground">{detail}</p>
     </div>
   );
