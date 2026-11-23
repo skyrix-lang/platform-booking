@@ -73,8 +73,9 @@ export const test = base.extend<{
       await use();
       if (testInfo.status !== testInfo.expectedStatus) return;
       if (!page.url().startsWith(baseURL!)) return;
-      // firefox 159 (playwright 1.65) crashes while axe checks some pages;
-      // chromium and webkit check the same pages; see docs/decisions.md.
+      // firefox 159 (playwright 1.65) crashes while axe checks some pages (a
+      // form field that had focus, the consent banner). chromium and webkit
+      // check the same pages; see docs/decisions.md.
       if (browserName === "firefox") return;
       // Colours are only final once fades end, such as a card that a live
       // update brings in, which can happen while axe runs: reduced motion

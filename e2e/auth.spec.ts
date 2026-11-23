@@ -90,6 +90,10 @@ test.describe("own session", () => {
     await page.goto("/auth/login?returnTo=/bookings");
     await logInOnKeycloak(page, KEYCLOAK_USERS.grace);
     await expect(page).toHaveURL("/bookings");
+    // Loaded, so signing out doesn't cancel the page's first requests.
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Active Bookings" }),
+    ).toBeVisible();
 
     // Sign-out is a same-origin form post, as a page offering it would send.
     await page.evaluate(() => {
@@ -101,6 +105,8 @@ test.describe("own session", () => {
     });
 
     await expect(page).toHaveURL("/");
+    // The app is still starting there: leaving now would interrupt it.
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     expect(await signedInEmail(page)).toBeNull();
     // Keycloak asks for the password again: its own session ended as well.
     await page.goto("/auth/login");

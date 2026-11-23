@@ -18,9 +18,11 @@ test.use(signedOut);
 
 test("a verified email links to the existing user", async ({
   page,
-  isMobile,
-}) => {
-  test.skip(isMobile, "the first sign-in links; run it once");
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "the first sign-in links; run it once",
+  );
   await createUser(KEYCLOAK_USERS.linus.email);
 
   await page.goto("/auth/login?returnTo=/");
@@ -34,9 +36,11 @@ test("a verified email links to the existing user", async ({
 
 test("an unverified email doesn't take over someone's account", async ({
   page,
-  isMobile,
-}) => {
-  test.skip(isMobile, "the first sign-in links; run it once");
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "the first sign-in links; run it once",
+  );
   await createUser(KEYCLOAK_USERS.mallory.email);
 
   await page.goto("/auth/login?returnTo=/");
