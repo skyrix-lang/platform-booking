@@ -54,7 +54,8 @@ origin, as in production.
   BFF on its own port and database, with the local Keycloak for the sign-in
   tests.
   Every test also fails on a browser console error, or on an axe accessibility
-  violation (WCAG 2.2 AA) on the page it ends on. Tests that change data create
+  violation (WCAG 2.2 AA) on the page it ends on (in Chromium and WebKit:
+  Firefox crashes under axe, see `docs/decisions.md`). Tests that change data create
   their own platform (`e2e-…`) first. `e2e/auth.spec.ts` drives the real
   Keycloak login.
 

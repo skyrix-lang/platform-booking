@@ -26,7 +26,7 @@ import { createLocalSession, storageState } from "../scripts/local-session";
  *   pages). Tests that trigger an error on purpose opt out with
  *   `test.use({ allowConsoleErrors: true })`.
  * - an accessibility violation (WCAG 2.2 AA, checked with axe) on the app
- *   page the test ends on.
+ *   page the test ends on, in Chromium and WebKit.
  * With E2E_COVERAGE=1 (`yarn test:coverage`), each test in Chromium also
  * records which of the app's code ran in the browser (scripts/coverage.ts).
  */
@@ -69,10 +69,13 @@ export const test = base.extend<{
     { auto: true },
   ],
   checkAccessibility: [
-    async ({ page, baseURL }, use, testInfo) => {
+    async ({ page, baseURL, browserName }, use, testInfo) => {
       await use();
       if (testInfo.status !== testInfo.expectedStatus) return;
       if (!page.url().startsWith(baseURL!)) return;
+      // firefox 159 (playwright 1.65) crashes while axe checks some pages;
+      // chromium and webkit check the same pages; see docs/decisions.md.
+      if (browserName === "firefox") return;
       // Colours are only final once fades end, such as a card that a live
       // update brings in, which can happen while axe runs: reduced motion
       // turns the fades off (motion-safe:), then the running ones finish.
