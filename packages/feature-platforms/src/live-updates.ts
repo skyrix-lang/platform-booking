@@ -26,16 +26,24 @@ export function useLiveUpdates() {
         void queryClient.invalidateQueries({ queryKey: key() });
       }
     };
-    const source = new EventSource("/api/events");
-    let opened = false;
-    source.onopen = () => {
-      // After a lost connection, changes may have been missed meanwhile.
-      if (opened) refetch(Object.values(queriesFor).flat());
-      opened = true;
+    let source: EventSource | undefined;
+    const connect = () => {
+      source = new EventSource("/api/events");
+      // changes may have been missed before the stream opened (since the
+      // page's first fetch) or while it was lost: refetch on every open.
+      source.onopen = () => refetch(Object.values(queriesFor).flat());
+      source.onmessage = (event: MessageEvent<string>) => {
+        refetch(queriesFor[event.data] ?? []);
+      };
     };
-    source.onmessage = (event: MessageEvent<string>) => {
-      refetch(queriesFor[event.data] ?? []);
+    // a stream opened before the page's load event can hold that event back
+    // for as long as it stays open, in webkit: safari's spinner never stops,
+    // and the nightly's page.goto waited 30 s for it. so it opens after.
+    if (document.readyState === "complete") connect();
+    else window.addEventListener("load", connect, { once: true });
+    return () => {
+      window.removeEventListener("load", connect);
+      source?.close();
     };
-    return () => source.close();
   }, [queryClient]);
 }
